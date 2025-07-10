@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Items/Maps/Battlefield/BackGround.png</file>
+        <file>Items/Characters/CharacterStand.png</file>
+        <file>Items/Characters/CharacterCrouch.png</file>
+    </qresource>
+</RCC>
