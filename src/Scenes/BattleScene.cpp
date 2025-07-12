@@ -6,6 +6,7 @@
 #include "BattleScene.h"
 #include "../Items/Characters/Link.h"
 #include "../Items/Maps/Battlefield.h"
+#include "../Items/Maps/Platform.h"
 
 BattleScene::BattleScene(QObject *parent) : Scene(parent) {
     // This is useful if you want the scene to have the exact same dimensions as the view
@@ -19,6 +20,7 @@ BattleScene::BattleScene(QObject *parent) : Scene(parent) {
     map->scaleToFitScene(this);
     character->setPos(map->getSpawnPos());
     character2->setPos(map->getSpawnPos() + QPointF(100, 0)); 
+    addItem(new Platform(PlatformType::Soil, 0, 600, 13));
 }
 
 void BattleScene::processInput() {
