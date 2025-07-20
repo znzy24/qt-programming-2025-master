@@ -12,5 +12,8 @@ enum class PlatformType {
 class Platform : public QGraphicsPixmapItem {
 public:
     Platform(PlatformType type, qreal x, qreal y, int width, QGraphicsItem* parent = nullptr);
+    PlatformType getType() const { return type; };
+private:
+    PlatformType type;
 };
 #endif // PLATFORM_H

@@ -33,4 +33,6 @@ Platform::Platform(PlatformType type, qreal x, qreal y, int width, QGraphicsItem
 
     setPixmap(resultPixmap);
     setZValue(0.1);
+
+    this->type = type;
 }

@@ -10,10 +10,11 @@
 Character::Character(QGraphicsItem *parent) : Item(parent, ":/Items/Characters/CharacterStand.png") {
     if (pixmapItem) {
         QPixmap original = pixmapItem->pixmap();
-        QPixmap scaled = original.scaled(120, 240, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap scaled = original.scaled(72, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         pixmapItem->setPixmap(scaled);
         pixmapItem->setOffset(-scaled.width() / 2, -scaled.height());
     }
+    setZValue(10);
 }
 
 bool Character::isLeftDown() const {
@@ -52,16 +53,36 @@ const QPointF &Character::getVelocity() const {
     return velocity;
 }
 
+bool Character::isStandingOnPlatform(qreal* platformY, PlatformType* type) {
+    QPointF foot(pos().x(), pos().y() + 2);
+    QList<QGraphicsItem*> items = scene()->items(foot);
+    for (QGraphicsItem* item : items) {
+        Platform* platform = dynamic_cast<Platform*>(item);
+        if (platform && typeid(*platform) == typeid(Platform)) {
+            qreal topY = platform->y();
+            qreal leftX = platform->x();
+            qreal rightX = platform->x() + platform->boundingRect().width();
+            if (std::abs(topY - foot.y()) < 40 && foot.x() >= leftX && foot.x() <= rightX) {
+                if (platformY) *platformY = topY;
+                if (type) *type = platform->getType();
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 void Character::setVelocity(const QPointF &velocity) {
     Character::velocity = velocity;
-    qreal groundY = 0;
-    if (map) {
-        groundY = map->getFloorHeight();
-    }
-    if (velocity.y() > 0 && pos().y() >= groundY) {
-        setY(groundY); 
+    qreal gravity = 0.1;
+    qreal platformY = 0;
+    if (velocity.y() >= 0 && isStandingOnPlatform(&platformY)) {
+        setY(platformY);
         Character::velocity.setY(0);
         canJump = true;
+    } else {
+        Character::velocity.setY(Character::velocity.y() + gravity);
+        canJump = false;
     }
 }
 
@@ -69,10 +90,11 @@ void Character::setCrouchPose() {
     if (poseState == Crouch) return;
     if (pixmapItem) {
         QPixmap crouchPixmap(":/Items/Characters/CharacterCrouch.png");
-        QPixmap scaled = crouchPixmap.scaled(120, 240, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap scaled = crouchPixmap.scaled(72, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         pixmapItem->setPixmap(scaled);
         pixmapItem->setOffset(-scaled.width() / 2, -scaled.height());
     }
+    setZValue(10);
     poseState = Crouch;
 }
 
@@ -80,10 +102,11 @@ void Character::setStandPose() {
     if (poseState == Stand) return;
     if (pixmapItem) {
         QPixmap standPixmap(":/Items/Characters/CharacterStand.png");
-        QPixmap scaled = standPixmap.scaled(120, 240, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap scaled = standPixmap.scaled(72, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         pixmapItem->setPixmap(scaled);
         pixmapItem->setOffset(-scaled.width() / 2, -scaled.height());
     }
+    setZValue(10);
     poseState = Stand;
 }
 
@@ -91,27 +114,42 @@ void Character::processInput() {
     crouching = isPickDown();
     auto velocity = this->velocity;
     const auto moveSpeed = 1.0;
-    const auto jumpSpeed = -3.0;
-    const auto gravity = 0.2;
+    const auto jumpSpeed = -1.5;
+
+    PlatformType platformType = PlatformType::Soil;
+    qreal dummyY;
+    isStandingOnPlatform(&dummyY, &platformType);
+
+    qreal actualMoveSpeed = moveSpeed;
+    if (platformType == PlatformType::Ice) {
+        actualMoveSpeed = moveSpeed * 2.0;
+    }
+
     if (!crouching) {
         velocity.setX(0);
         if (isLeftDown()) {
-            velocity.setX(velocity.x() - moveSpeed);
+            velocity.setX(velocity.x() - actualMoveSpeed);
             setTransform(QTransform().scale(1, 1));
         }
         if (isRightDown()) {
-            velocity.setX(velocity.x() + moveSpeed);
+            velocity.setX(velocity.x() + actualMoveSpeed);
             setTransform(QTransform().scale(-1, 1));
         }
         if (isJumpDown() && canJump) {
             velocity.setY(jumpSpeed);
-            canJump = false; 
+            canJump = false;
         }
     } else {
-        velocity.setX(0); 
+        velocity.setX(0);
     }
-    velocity.setY(velocity.y() + gravity);
+
     setVelocity(velocity);
+
+    if (platformType == PlatformType::Grass && crouching) {
+        if (pixmapItem) pixmapItem->setVisible(false);
+    } else {
+        if (pixmapItem) pixmapItem->setVisible(true);
+    }
 
     if (!lastPickDown && pickDown) { // first time pickDown
         picking = true;
@@ -122,8 +160,8 @@ void Character::processInput() {
 
     // 姿态切换
     if (crouching) {
-        setCrouchPose(); 
-    } 
+        setCrouchPose();
+    }
     else {
         setStandPose();
     }

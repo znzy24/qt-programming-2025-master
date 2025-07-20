@@ -8,6 +8,7 @@
 #include <QGraphicsEllipseItem>
 #include "../Armors/Armor.h"
 #include "../Maps/Map.h"
+#include "../Maps/Platform.h"
 
 enum PoseState { Stand, Crouch };
 
@@ -52,6 +53,7 @@ protected:
     QPointF velocity{};
     PoseState poseState = Stand;
 //    QGraphicsEllipseItem *ellipseItem; // for debugging
+    PlatformType currentPlatformType = PlatformType::Soil;
     bool leftDown{};
     bool rightDown{};
     bool pickDown{};
@@ -62,6 +64,8 @@ protected:
     bool canJump{true}; 
     Map* map = nullptr;
     int lifevalue = 100;
+    qreal nearestPlatformY = 1e9;
+    bool isStandingOnPlatform(qreal* platformY = nullptr, PlatformType* type = nullptr);
 };
 
 

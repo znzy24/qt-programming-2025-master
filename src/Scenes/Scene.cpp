@@ -24,7 +24,7 @@ void Scene::update() {
 }
 
 void Scene::startLoop() {
-    timer->start(1000 / 90); // 90FPS
+    timer->start(1000 / 60); // 60FPS
 }
 
 void Scene::processInput() {

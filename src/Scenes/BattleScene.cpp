@@ -17,10 +17,14 @@ BattleScene::BattleScene(QObject *parent) : Scene(parent) {
     addItem(map);
     addItem(character);
     addItem(character2);
-    map->scaleToFitScene(this);
-    character->setPos(map->getSpawnPos());
-    character2->setPos(map->getSpawnPos() + QPointF(100, 0)); 
-    addItem(new Platform(PlatformType::Soil, 0, 600, 13));
+    character->setPos(100, 650);
+    character2->setPos(800, 650);
+    addItem(new Platform(PlatformType::Soil, 0, 670, 26));
+    addItem(new Platform(PlatformType::Soil, 50, 520, 8));
+    addItem(new Platform(PlatformType::Grass, 820, 520, 8));
+    addItem(new Platform(PlatformType::Ice, 350, 370, 11));
+    addItem(new Platform(PlatformType::Soil, 820, 220, 8));
+    addItem(new Platform(PlatformType::Grass, 50, 220, 8));
 }
 
 void BattleScene::processInput() {
