@@ -20,10 +20,6 @@ add_executable(qt_programming_2024 src/main.cpp
         src/Items/Item.h
         src/Items/Characters/Character.cpp
         src/Items/Characters/Character.h
-        src/Items/Characters/Link.cpp
-        src/Items/Characters/Link.h
-        src/Items/Armors/Armor.cpp
-        src/Items/Armors/Armor.h
         src/Scenes/Scene.cpp
         src/Scenes/Scene.h
         src/Scenes/BattleScene.cpp
@@ -36,7 +32,13 @@ add_executable(qt_programming_2024 src/main.cpp
         src/Items/Maps/Platform.cpp
         src/Items/Maps/Platform.h
         src/Items/Mountable.cpp
-        src/Items/Mountable.h)
+        src/Items/Mountable.h
+        src/Items/HealthBar/HealthBar.cpp
+        src/Items/HealthBar/HealthBar.h
+        src/Items/Weapons/Weapon.cpp
+        src/Items/Weapons/Weapon.h
+        src/Items/Weapons/Fist.h
+        src/Items/Weapons/Fist.cpp)
 target_link_libraries(qt_programming_2024
         Qt::Core
         Qt::Gui

@@ -4,6 +4,7 @@
 
 #include <QTransform>
 #include <QDebug>
+#include <QDateTime>
 #include "Character.h"
 
 
@@ -130,10 +131,12 @@ void Character::processInput() {
         if (isLeftDown()) {
             velocity.setX(velocity.x() - actualMoveSpeed);
             setTransform(QTransform().scale(1, 1));
+            facingLeft = true;
         }
         if (isRightDown()) {
             velocity.setX(velocity.x() + actualMoveSpeed);
             setTransform(QTransform().scale(-1, 1));
+            facingLeft = false;
         }
         if (isJumpDown() && canJump) {
             velocity.setY(jumpSpeed);
@@ -142,7 +145,9 @@ void Character::processInput() {
     } else {
         velocity.setX(0);
     }
-
+    if (attackDown) {
+        attack();
+    }
     setVelocity(velocity);
 
     if (platformType == PlatformType::Grass && crouching) {
@@ -175,16 +180,55 @@ bool Character::isCrouching() const {
     return crouching;
 }
 
-Armor *Character::pickupArmor(Armor *newArmor) {
-    auto oldArmor = armor;
-    if (oldArmor != nullptr) {
-        oldArmor->unmount();
-        oldArmor->setPos(newArmor->pos());
-        oldArmor->setParentItem(parentItem());
+Weapon* Character::pickupWeapon(Weapon* newWeapon) {
+    if (newWeapon == nullptr) return nullptr;
+    
+    Weapon* oldWeapon = weapon;
+    weapon = newWeapon;
+    newWeapon->setParentItem(this);
+    newWeapon->mountToParent();
+    
+    if (oldWeapon) {
+        oldWeapon->unmount();
     }
-    newArmor->setParentItem(this);
-    newArmor->mountToParent();
-    armor = newArmor;
-    return oldArmor;
+    
+    return oldWeapon;
 }
 
+
+bool Character::isAttackDown() const {
+    return attackDown;
+}
+
+void Character::setAttackDown(bool attackDown) {
+    this->attackDown = attackDown;
+}
+
+bool Character::isFacingLeft() const {
+    return facingLeft;
+}
+
+void Character::attack() {
+    static qint64 lastAttackTime = 0;
+    qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
+    
+    // 攻击冷却时间 500ms
+    if (currentTime - lastAttackTime < 500) {
+        return;
+    }
+    lastAttackTime = currentTime;
+    
+    if (weapon) {
+        weapon->attack(this);
+        return;
+    }
+    
+    // 无武器时使用默认拳头攻击
+    static Fist defaultFist; // 静态默认拳头武器
+    defaultFist.attack(this);
+}
+
+void Character::takeDamage(int damage) {
+    lifevalue = qMax(0, lifevalue - damage);
+    // 可以在这里添加受伤效果，如闪烁、击退等
+}

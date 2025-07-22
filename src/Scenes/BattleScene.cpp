@@ -4,16 +4,17 @@
 
 #include <QDebug>
 #include "BattleScene.h"
-#include "../Items/Characters/Link.h"
+#include "../Items/Characters/Character.h"
 #include "../Items/Maps/Battlefield.h"
 #include "../Items/Maps/Platform.h"
+#include "../Items/HealthBar/HealthBar.h"
 
 BattleScene::BattleScene(QObject *parent) : Scene(parent) {
     // This is useful if you want the scene to have the exact same dimensions as the view
     setSceneRect(0, 0, 1280, 720);
     map = new Battlefield();
-    character = new Link(map);
-    character2 = new Link(map); 
+    character = new Character(nullptr);
+    character2 = new Character(nullptr);
     addItem(map);
     addItem(character);
     addItem(character2);
@@ -25,6 +26,12 @@ BattleScene::BattleScene(QObject *parent) : Scene(parent) {
     addItem(new Platform(PlatformType::Ice, 350, 370, 11));
     addItem(new Platform(PlatformType::Soil, 820, 220, 8));
     addItem(new Platform(PlatformType::Grass, 50, 220, 8));
+    leftBar = new HealthBar();
+    leftBar->setPos(10, 10);
+    rightBar = new HealthBar();
+    rightBar->setPos(1070, 10);
+    addItem(leftBar);
+    addItem(rightBar);
 }
 
 void BattleScene::processInput() {
@@ -47,6 +54,8 @@ void BattleScene::keyPressEvent(QKeyEvent *event) {
             if (character != nullptr) character->setPickDown(true); break;
         case Qt::Key_W:
             if (character != nullptr) character->setJumpDown(true); break;
+        case Qt::Key_K:
+            if (character != nullptr) character->setAttackDown(true); break;
         case Qt::Key_Left:
             if (character2 != nullptr) character2->setLeftDown(true); break;
         case Qt::Key_Right:
@@ -55,6 +64,8 @@ void BattleScene::keyPressEvent(QKeyEvent *event) {
             if (character2 != nullptr) character2->setPickDown(true); break;
         case Qt::Key_Up:
             if (character2 != nullptr) character2->setJumpDown(true); break;
+        case Qt::Key_0:
+            if (character2 != nullptr) character2->setAttackDown(true); break;
         default:
             Scene::keyPressEvent(event);
     }
@@ -70,7 +81,9 @@ void BattleScene::keyReleaseEvent(QKeyEvent *event) {
             if (character != nullptr) character->setPickDown(false); break;
         case Qt::Key_W:
             if (character != nullptr) character->setJumpDown(false); break;
-        case Qt::Key_Left:
+        case Qt::Key_K:
+            if (character != nullptr) character->setAttackDown(false); break;
+            case Qt::Key_Left:
             if (character2 != nullptr) character2->setLeftDown(false); break;
         case Qt::Key_Right:
             if (character2 != nullptr) character2->setRightDown(false); break;
@@ -78,13 +91,17 @@ void BattleScene::keyReleaseEvent(QKeyEvent *event) {
             if (character2 != nullptr) character2->setPickDown(false); break;
         case Qt::Key_Up:
             if (character2 != nullptr) character2->setJumpDown(false); break;
-        default:
+        case Qt::Key_0:
+            if (character2 != nullptr) character2->setAttackDown(false); break;
+            default:
             Scene::keyReleaseEvent(event);
     }
 }
 
 void BattleScene::update() {
     Scene::update();
+    leftBar->setLife(character->getLifeValue());
+    rightBar->setLife(character2->getLifeValue());
 }
 
 void BattleScene::processMovement() {
@@ -120,7 +137,7 @@ void BattleScene::processPicking() {
     if (character->isPicking()) {
         auto mountable = findNearestUnmountedMountable(character->pos(), 100.);
         if (mountable != nullptr) {
-            spareArmor = dynamic_cast<Armor *>(pickupMountable(character, mountable));
+            spareWeapon = dynamic_cast<Weapon *>(pickupMountable(character, mountable));  // 替换 spareArmor
         }
     }
 }
@@ -145,9 +162,9 @@ Mountable *BattleScene::findNearestUnmountedMountable(const QPointF &pos, qreal 
 }
 
 Mountable *BattleScene::pickupMountable(Character *character, Mountable *mountable) {
-    // Limitation: currently only supports armor
-    if (auto armor = dynamic_cast<Armor *>(mountable)) {
-        return character->pickupArmor(armor);
+    // 现在只支持武器
+    if (auto weapon = dynamic_cast<Weapon *>(mountable)) {
+        return character->pickupWeapon(weapon);  // 替换 pickupArmor
     }
     return nullptr;
 }

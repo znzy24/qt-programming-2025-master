@@ -3,6 +3,9 @@
 //
 
 #include "Battlefield.h"
+#include "Platform.h"
 
-Battlefield::Battlefield(QGraphicsItem *parent) : Map(parent, ":/Items/Maps/Battlefield/BackGround.png") {}
+Battlefield::Battlefield(QGraphicsItem *parent) : Map(parent, ":/Items/Maps/Battlefield/BackGround.png") {
+
+}
 

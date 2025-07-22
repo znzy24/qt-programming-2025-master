@@ -1,14 +1,11 @@
-//
-// Created by gerw on 8/20/24.
-//
-
 #ifndef QT_PROGRAMMING_2024_CHARACTER_H
 #define QT_PROGRAMMING_2024_CHARACTER_H
 
 #include <QGraphicsEllipseItem>
-#include "../Armors/Armor.h"
+#include "../Weapons/Weapon.h"
 #include "../Maps/Map.h"
 #include "../Maps/Platform.h"
+#include "../Weapons/Fist.h"
 
 enum PoseState { Stand, Crouch };
 
@@ -38,7 +35,7 @@ public:
 
     void processInput();
 
-    Armor* pickupArmor(Armor* newArmor);
+    Weapon* pickupWeapon(Weapon* newWeapon);
 
     [[nodiscard]] bool isJumpDown() const;
 
@@ -48,8 +45,20 @@ public:
 
     void setStandPose();
 
+    int getLifeValue() const { return lifevalue; }
+
+    [[nodiscard]] bool isAttackDown() const;
+
+    void setAttackDown(bool attackDown);
+
+    void attack();
+
+    void takeDamage(int damage);
+
+    [[nodiscard]] bool isFacingLeft() const;
+
 protected:
-    Armor *armor{};
+    Weapon *weapon{};
     QPointF velocity{};
     PoseState poseState = Stand;
 //    QGraphicsEllipseItem *ellipseItem; // for debugging
@@ -62,10 +71,11 @@ protected:
     bool crouching{};
     bool jumpDown{};
     bool canJump{true}; 
-    Map* map = nullptr;
     int lifevalue = 100;
     qreal nearestPlatformY = 1e9;
     bool isStandingOnPlatform(qreal* platformY = nullptr, PlatformType* type = nullptr);
+    bool attackDown{};
+    bool facingLeft{false}; 
 };
 
 
