@@ -9,7 +9,7 @@ class HealthBar : public QGraphicsRectItem {
 public:
     HealthBar(QGraphicsItem* parent = nullptr);
     
-    void setLife(int life, int maxLife = 100);
+    void setLife(int life, int maxLife);
 
 private:
     QGraphicsRectItem* backgroundRect;

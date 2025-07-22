@@ -9,7 +9,7 @@ class WeaponBar : public QGraphicsRectItem {
 public:
     WeaponBar(QGraphicsItem* parent = nullptr);
     
-    void setWeaponPoints(int points, int maxPoints = 1);
+    void setWeaponPoints(int points, int maxPoints);
 
 private:
     QGraphicsRectItem* backgroundRect;

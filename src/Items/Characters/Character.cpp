@@ -46,6 +46,14 @@ void Character::setJumpDown(bool jumpDown) {
     Character::jumpDown = jumpDown;
 }
 
+bool Character::isAttackDown() const {
+    return attackDown;
+}
+
+void Character::setAttackDown(bool attackDown) {
+    this->attackDown = attackDown;
+}
+
 const QPointF &Character::getVelocity() const {
     return velocity;
 }
@@ -178,32 +186,27 @@ bool Character::isCrouching() const {
     return crouching;
 }
 
-Weapon* Character::pickupWeapon(Weapon* newWeapon) {
-    if (newWeapon == nullptr) return nullptr;
+void Character::pickupWeapon(Weapon* newWeapon) {
+    if (newWeapon == nullptr) return;
     
     Weapon* oldWeapon = weapon;
+
+    if (oldWeapon) {
+        oldWeapon->unmount();
+        scene()->removeItem(oldWeapon);
+        delete oldWeapon;
+    }
+
     weapon = newWeapon;
     newWeapon->setParentItem(this);
     newWeapon->mountToParent();
-    updateWeaponPosition();
     newWeapon->setVisible(true);
     newWeapon->setZValue(5);
-    
-    if (oldWeapon) {
-        oldWeapon->unmount();
-    }
-    
-    return oldWeapon;
+    updateWeaponPosition();
 }
 
 
-bool Character::isAttackDown() const {
-    return attackDown;
-}
 
-void Character::setAttackDown(bool attackDown) {
-    this->attackDown = attackDown;
-}
 
 bool Character::isFacingLeft() const {
     return facingLeft;
@@ -255,6 +258,4 @@ void Character::updateWeaponPosition() {
     QPointF weaponOffset(-25, -30); // 相对位置
     weapon->setPos(weaponOffset);
     weapon->setTransform(QTransform().scale(1, 1)); // 保持武器不额外翻转
-    
-    weapon->setPos(weaponOffset);
 }

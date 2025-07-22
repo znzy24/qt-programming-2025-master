@@ -1,15 +1,9 @@
-//
-// Created by gerw on 8/20/24.
-//
-
 #include <QDebug>
 #include "BattleScene.h"
-#include "../Items/Characters/Character.h"
 #include "../Items/Maps/Battlefield.h"
 #include "../Items/Maps/Platform.h"
 
 BattleScene::BattleScene(QObject *parent) : Scene(parent) {
-    // This is useful if you want the scene to have the exact same dimensions as the view
     setSceneRect(0, 0, 1280, 720);
     map = new Battlefield();
     character = new Character(nullptr);
@@ -19,12 +13,14 @@ BattleScene::BattleScene(QObject *parent) : Scene(parent) {
     addItem(character2);
     character->setPos(100, 650);
     character2->setPos(800, 650);
+
     addItem(new Platform(PlatformType::Soil, 0, 670, 26));
     addItem(new Platform(PlatformType::Soil, 50, 520, 8));
     addItem(new Platform(PlatformType::Grass, 820, 520, 8));
     addItem(new Platform(PlatformType::Ice, 350, 370, 11));
     addItem(new Platform(PlatformType::Soil, 820, 220, 8));
     addItem(new Platform(PlatformType::Grass, 50, 220, 8));
+
     leftBar = new HealthBar();
     leftBar->setPos(10, 10);
     rightBar = new HealthBar();
@@ -37,6 +33,7 @@ BattleScene::BattleScene(QObject *parent) : Scene(parent) {
     rightWeaponBar->setPos(1070, 40);
     addItem(leftWeaponBar);
     addItem(rightWeaponBar);
+    
     Knife* testKnife = new Knife();
     testKnife->setPos(300, 650);
     addItem(testKnife);
@@ -50,6 +47,7 @@ void BattleScene::processInput() {
     if (character2 != nullptr) {
         character2->processInput();
     }
+    return;
 }
 
 void BattleScene::keyPressEvent(QKeyEvent *event) {
@@ -77,6 +75,7 @@ void BattleScene::keyPressEvent(QKeyEvent *event) {
         default:
             Scene::keyPressEvent(event);
     }
+    return;
 }
 
 void BattleScene::keyReleaseEvent(QKeyEvent *event) {
@@ -101,17 +100,19 @@ void BattleScene::keyReleaseEvent(QKeyEvent *event) {
             if (character2 != nullptr) character2->setJumpDown(false); break;
         case Qt::Key_0:
             if (character2 != nullptr) character2->setAttackDown(false); break;
-            default:
+        default:
             Scene::keyReleaseEvent(event);
     }
+    return;
 }
 
 void BattleScene::update() {
     Scene::update();
-    leftBar->setLife(character->getLifeValue());
-    rightBar->setLife(character2->getLifeValue());
+    leftBar->setLife(character->getLifeValue(), character->getMaxLifeValue());
+    rightBar->setLife(character2->getLifeValue(), character2->getMaxLifeValue());
     leftWeaponBar->setWeaponPoints(character->getCurrentWeaponPoints(), character->getMaxWeaponPoints());
     rightWeaponBar->setWeaponPoints(character2->getCurrentWeaponPoints(), character2->getMaxWeaponPoints());
+    return;
 }
 
 void BattleScene::processMovement() {
@@ -139,17 +140,18 @@ void BattleScene::processMovement() {
         newPos2.setY(qBound(bounds.top() + fullH2, newPos2.y(), bounds.bottom()));
         character2->setPos(newPos2);
     }
-    
+    return;
 }
 
 void BattleScene::processPicking() {
     Scene::processPicking();
     if (character->isPicking()) {
-        auto mountable = findNearestUnmountedMountable(character->pos(), 100.);
+        auto mountable = findNearestUnmountedMountable(character->pos(), 100);
         if (mountable != nullptr) {
-            spareWeapon = dynamic_cast<Weapon *>(pickupMountable(character, mountable));  // 替换 spareArmor
+           pickupMountable(character, mountable);
         }
     }
+    return;
 }
 
 Mountable *BattleScene::findNearestUnmountedMountable(const QPointF &pos, qreal distance_threshold) {
@@ -171,10 +173,9 @@ Mountable *BattleScene::findNearestUnmountedMountable(const QPointF &pos, qreal 
     return nearest;
 }
 
-Mountable *BattleScene::pickupMountable(Character *character, Mountable *mountable) {
-    // 现在只支持武器
+void *BattleScene::pickupMountable(Character *character, Mountable *mountable) {
     if (auto weapon = dynamic_cast<Weapon *>(mountable)) {
-        return character->pickupWeapon(weapon);  // 替换 pickupArmor
+        character->pickupWeapon(weapon);
     }
-    return nullptr;
+    return;
 }

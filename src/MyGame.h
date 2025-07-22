@@ -1,7 +1,3 @@
-//
-// Created by gerw on 8/20/24.
-//
-
 #ifndef QT_PROGRAMMING_2024_MYGAME_H
 #define QT_PROGRAMMING_2024_MYGAME_H
 
@@ -21,4 +17,4 @@ private:
 };
 
 
-#endif //QT_PROGRAMMING_2024_MYGAME_H
+#endif

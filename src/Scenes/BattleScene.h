@@ -1,7 +1,3 @@
-//
-// Created by gerw on 8/20/24.
-//
-
 #ifndef QT_PROGRAMMING_2024_BATTLESCENE_H
 #define QT_PROGRAMMING_2024_BATTLESCENE_H
 
@@ -37,17 +33,21 @@ private:
 
     Mountable *findNearestUnmountedMountable(const QPointF &pos, qreal distance_threshold = std::numeric_limits<qreal>::max());
 
-    static Mountable * pickupMountable(Character *character, Mountable *mountable);
+    void * pickupMountable(Character *character, Mountable *mountable);
 
     Map *map;
+
     Character *character;
     Character *character2;
+
     HealthBar* leftBar = nullptr;
     HealthBar* rightBar = nullptr;
+
     Weapon *spareWeapon = nullptr;
+
     WeaponBar* leftWeaponBar = nullptr;
     WeaponBar* rightWeaponBar = nullptr;
 };
 
 
-#endif //QT_PROGRAMMING_2024_BATTLESCENE_H
+#endif
