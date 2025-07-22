@@ -1,7 +1,3 @@
-//
-// Created by gerw on 8/21/24.
-//
-
 #ifndef QT_PROGRAMMING_2024_MOUNTABLE_H
 #define QT_PROGRAMMING_2024_MOUNTABLE_H
 
@@ -15,8 +11,8 @@ public:
     [[nodiscard]] bool isMounted() const;
 
 private:
-    bool mounted{};
+    bool mounted = false;
 };
 
 
-#endif //QT_PROGRAMMING_2024_MOUNTABLE_H
+#endif

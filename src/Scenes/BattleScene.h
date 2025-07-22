@@ -33,12 +33,12 @@ private:
 
     Mountable *findNearestUnmountedMountable(const QPointF &pos, qreal distance_threshold = std::numeric_limits<qreal>::max());
 
-    void * pickupMountable(Character *character, Mountable *mountable);
+    void pickupMountable(Character *character, Mountable *mountable);
 
-    Map *map;
+    Map *map = nullptr;
 
-    Character *character;
-    Character *character2;
+    Character *character = nullptr;
+    Character *character2 = nullptr;
 
     HealthBar* leftBar = nullptr;
     HealthBar* rightBar = nullptr;

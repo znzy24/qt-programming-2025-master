@@ -173,7 +173,7 @@ Mountable *BattleScene::findNearestUnmountedMountable(const QPointF &pos, qreal 
     return nearest;
 }
 
-void *BattleScene::pickupMountable(Character *character, Mountable *mountable) {
+void BattleScene::pickupMountable(Character *character, Mountable *mountable) {
     if (auto weapon = dynamic_cast<Weapon *>(mountable)) {
         character->pickupWeapon(weapon);
     }

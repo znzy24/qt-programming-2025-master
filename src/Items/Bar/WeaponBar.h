@@ -14,8 +14,8 @@ public:
 private:
     QGraphicsRectItem* backgroundRect;
     QGraphicsTextItem* textItem;
-    int currentWeaponPoints;
-    int maxWeaponPoints;
+    int currentWeaponPoints{};
+    int maxWeaponPoints{};
 };
 
 #endif

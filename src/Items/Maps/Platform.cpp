@@ -36,3 +36,7 @@ Platform::Platform(PlatformType type, qreal x, qreal y, int width, QGraphicsItem
 
     this->type = type;
 }
+
+PlatformType Platform::getType() const {
+    return type;
+}

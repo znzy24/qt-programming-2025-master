@@ -18,10 +18,11 @@ WeaponBar::WeaponBar(QGraphicsItem* parent) : QGraphicsRectItem(parent) {
 }
 
 void WeaponBar::setWeaponPoints(int points, int maxPoints) {
-    currentWeaponPoints = qMax(0, points);
-    maxWeaponPoints = qMax(1, maxPoints);
-    qreal width = 200.0 * currentWeaponPoints / maxWeaponPoints;
+    this->currentWeaponPoints = qMax(0, points);
+    this->maxWeaponPoints = qMax(1, maxPoints);
+
+    qreal width = 200.0 * this->currentWeaponPoints / this->maxWeaponPoints;
     setRect(0, 0, width, 25);
-    
-    textItem->setPlainText(QString("WP:%1/%2").arg(currentWeaponPoints).arg(maxWeaponPoints));
+
+    textItem->setPlainText(QString("WP:%1/%2").arg(this->currentWeaponPoints).arg(this->maxWeaponPoints));
 }

@@ -24,39 +24,35 @@ public:
     void setJumpDown(bool jumpDown);
     [[nodiscard]] bool isAttackDown() const;
     void setAttackDown(bool attackDown);
+    [[nodiscard]] bool isFacingLeft() const;
 
-
-    
-    [[nodiscard]] const QPointF &getVelocity() const;
-    [[nodiscard]] bool isPicking() const;
-    [[nodiscard]] bool isCrouching() const;
-    void setVelocity(const QPointF &velocity);
-    void processInput();
-    void pickupWeapon(Weapon* newWeapon);
-    
     void setCrouchPose();
     void setStandPose();
-    int getLifeValue() const { return lifevalue; }
-    int getMaxLifeValue() const { return 100; }
+    [[nodiscard]] bool isCrouching() const;
     
+    void pickupWeapon(Weapon* newWeapon);
+    [[nodiscard]] bool isPicking() const;
+
+    [[nodiscard]] const QPointF &getVelocity() const;
+    void setVelocity(const QPointF &velocity);
+
+    void processInput();
+    
+    int getLifeValue() const;
+    int getMaxLifeValue() const;
+    void setLifeValue(int lifeValue);
+    int getCurrentWeaponPoints() const;
+    int getMaxWeaponPoints() const;
+    void setWeaponPoints(int points, int maxPoints = 1);
+
     void attack();
     void takeDamage(int damage);
-    [[nodiscard]] bool isFacingLeft() const;
+    void consumeWeaponPoint(int point);
     void updateWeaponPosition();
-    int getCurrentWeaponPoints() const { return currentWeaponPoints; }
-    int getMaxWeaponPoints() const { return maxWeaponPoints; }
-    void setWeaponPoints(int points, int maxPoints = 1) { 
-        currentWeaponPoints = points; 
-        maxWeaponPoints = maxPoints; 
-    }
-    void consumeWeaponPoint(int point) { 
-        if (currentWeaponPoints > 0) currentWeaponPoints -= point; 
-    }
 protected:
     Weapon *weapon{};
     QPointF velocity{};
     PoseState poseState = Stand;
-//    QGraphicsEllipseItem *ellipseItem; // for debugging
     PlatformType currentPlatformType = PlatformType::Soil;
     bool leftDown{};
     bool rightDown{};
@@ -76,4 +72,4 @@ protected:
 };
 
 
-#endif //QT_PROGRAMMING_2024_CHARACTER_H
+#endif

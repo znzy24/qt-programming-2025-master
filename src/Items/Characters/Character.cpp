@@ -205,9 +205,6 @@ void Character::pickupWeapon(Weapon* newWeapon) {
     updateWeaponPosition();
 }
 
-
-
-
 bool Character::isFacingLeft() const {
     return facingLeft;
 }
@@ -258,4 +255,41 @@ void Character::updateWeaponPosition() {
     QPointF weaponOffset(-25, -30); // 相对位置
     weapon->setPos(weaponOffset);
     weapon->setTransform(QTransform().scale(1, 1)); // 保持武器不额外翻转
+}
+
+int Character::getLifeValue() const {
+    return lifevalue;
+}
+
+int Character::getMaxLifeValue() const {
+    return 100;
+}
+
+void Character::setWeaponPoints(int points, int maxPoints) {
+    currentWeaponPoints = points;
+    maxWeaponPoints = maxPoints;
+    return;
+}
+
+int Character::getMaxWeaponPoints() const {
+    return maxWeaponPoints;
+}
+
+int Character::getCurrentWeaponPoints() const {
+    return currentWeaponPoints;
+}
+
+void Character::setLifeValue(int lifeValue) {
+    lifevalue = qBound(0, lifeValue, getMaxLifeValue());
+    return;
+}
+
+void Character::consumeWeaponPoint(int point) {
+    if (currentWeaponPoints > 0) {
+        currentWeaponPoints -= point;
+        if (currentWeaponPoints < 0) {
+            currentWeaponPoints = 0;
+        }
+    }
+    return;
 }

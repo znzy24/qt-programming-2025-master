@@ -1,11 +1,8 @@
-//
-// Created by gerw on 8/21/24.
-//
-
 #include "Mountable.h"
 
 void Mountable::unmount() {
     mounted = false;
+    return;
 }
 
 bool Mountable::isMounted() const {
@@ -14,4 +11,5 @@ bool Mountable::isMounted() const {
 
 void Mountable::mountToParent() {
     mounted = true;
+    return;
 }

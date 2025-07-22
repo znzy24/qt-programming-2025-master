@@ -8,15 +8,12 @@ class Character;
 
 enum class WeaponType {
     Fist,
-    Knife,
-    Sword, 
-    Bow,    
-    Staff    
+    Knife,   
 };
 
 class Weapon : public Item, public Mountable {
 public:
-    explicit Weapon(QGraphicsItem *parent, const QString &pixmapPath, WeaponType type = WeaponType::Sword, int damage = 25, qreal range = 60.0);
+    explicit Weapon(QGraphicsItem *parent, const QString &pixmapPath, WeaponType type = WeaponType::Fist, int damage = 25, qreal range = 60.0);
 
     void mountToParent() override;
     void unmount() override;
@@ -34,4 +31,4 @@ protected:
     qreal attackRange;
 };
 
-#endif //QT_PROGRAMMING_2024_WEAPON_H
+#endif

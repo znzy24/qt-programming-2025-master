@@ -1,7 +1,3 @@
-//
-// Created by gerw on 8/21/24.
-//
-
 #ifndef QT_PROGRAMMING_2024_MAP_H
 #define QT_PROGRAMMING_2024_MAP_H
 
@@ -15,4 +11,4 @@ public:
 };
 
 
-#endif //QT_PROGRAMMING_2024_MAP_H
+#endif
