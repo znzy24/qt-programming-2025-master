@@ -1,7 +1,3 @@
-//
-// Created by gerw on 8/20/24.
-//
-
 #include <QTransform>
 #include <QDebug>
 #include <QDateTime>
@@ -145,6 +141,8 @@ void Character::processInput() {
     } else {
         velocity.setX(0);
     }
+
+    updateWeaponPosition();
     if (attackDown) {
         attack();
     }
@@ -187,6 +185,9 @@ Weapon* Character::pickupWeapon(Weapon* newWeapon) {
     weapon = newWeapon;
     newWeapon->setParentItem(this);
     newWeapon->mountToParent();
+    updateWeaponPosition();
+    newWeapon->setVisible(true);
+    newWeapon->setZValue(5);
     
     if (oldWeapon) {
         oldWeapon->unmount();
@@ -219,7 +220,21 @@ void Character::attack() {
     lastAttackTime = currentTime;
     
     if (weapon) {
+        // 检查武器是否需要消耗点数
+        int weaponCost = weapon->getCost(); // 需要在Weapon类中添加这个方法
+        
+        if (weaponCost > 0 && currentWeaponPoints < weaponCost) {
+            // 武器点数不足，无法攻击
+            return;
+        }
+        
+        // 执行攻击
         weapon->attack(this);
+        
+        // 消耗武器点数（小刀和拳头的cost为0，不消耗点数）
+        if (weaponCost > 0) {
+            consumeWeaponPoint(weaponCost);
+        }
         return;
     }
     
@@ -231,4 +246,15 @@ void Character::attack() {
 void Character::takeDamage(int damage) {
     lifevalue = qMax(0, lifevalue - damage);
     // 可以在这里添加受伤效果，如闪烁、击退等
+}
+
+void Character::updateWeaponPosition() {
+    if (weapon == nullptr) return;
+    
+    // 设置武器相对于角色的固定位置（右手位置）
+    QPointF weaponOffset(-25, -30); // 相对位置
+    weapon->setPos(weaponOffset);
+    weapon->setTransform(QTransform().scale(1, 1)); // 保持武器不额外翻转
+    
+    weapon->setPos(weaponOffset);
 }

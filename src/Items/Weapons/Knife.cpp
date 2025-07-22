@@ -1,23 +1,26 @@
-#include "Fist.h"
+#include "Knife.h"
 #include "../Characters/Character.h"
 #include <QGraphicsScene>
 
-Fist::Fist(QGraphicsItem *parent) 
-    : Weapon(parent, "", WeaponType::Fist, 5, 50.0) 
+Knife::Knife(QGraphicsItem *parent) 
+    : Weapon(parent, ":/Items/Weapons/Knife.png", WeaponType::Knife, 10, 70)  // 伤害10，范围70
 {
-    // 拳头不需要显示图像
+    // 设置小刀的图像大小
     if (pixmapItem) {
-        pixmapItem->setVisible(false);
+        QPixmap original = pixmapItem->pixmap();
+        QPixmap scaled = original.scaled(24, 36, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        pixmapItem->setPixmap(scaled);
+        pixmapItem->setOffset(-scaled.width() / 2, -scaled.height() / 2);
     }
 }
 
-void Fist::attack(Character* attacker) {
+void Knife::attack(Character* attacker) {
     if (!attacker || !attacker->scene()) return;
     
-    // 计算攻击方向和区域
+    // 小刀攻击范围较小但伤害适中
     QPointF attackDirection = attacker->isFacingLeft() ? QPointF(-1, 0) : QPointF(1, 0);
     QPointF attackPos = attacker->pos() + attackDirection * attackRange;
-    QRectF attackArea(attackPos.x() - 25, attackPos.y() - 40, 50, 80);
+    QRectF attackArea(attackPos.x() - 22, attackPos.y() - 35, 45, 70);
     
     // 检测攻击范围内的敌人
     for (QGraphicsItem* item : attacker->scene()->items(attackArea)) {

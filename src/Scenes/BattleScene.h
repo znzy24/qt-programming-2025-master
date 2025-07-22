@@ -9,7 +9,8 @@
 #include "Scene.h"
 #include "../Items/Maps/Map.h"
 #include "../Items/Characters/Character.h"
-#include "../Items/HealthBar/HealthBar.h"
+#include "../Items/Bar/HealthBar.h"
+#include "../Items/Bar/WeaponBar.h"
 
 class BattleScene : public Scene {
 Q_OBJECT
@@ -44,6 +45,8 @@ private:
     HealthBar* leftBar = nullptr;
     HealthBar* rightBar = nullptr;
     Weapon *spareWeapon = nullptr;
+    WeaponBar* leftWeaponBar = nullptr;
+    WeaponBar* rightWeaponBar = nullptr;
 };
 
 

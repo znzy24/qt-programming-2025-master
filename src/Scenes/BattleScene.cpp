@@ -7,7 +7,6 @@
 #include "../Items/Characters/Character.h"
 #include "../Items/Maps/Battlefield.h"
 #include "../Items/Maps/Platform.h"
-#include "../Items/HealthBar/HealthBar.h"
 
 BattleScene::BattleScene(QObject *parent) : Scene(parent) {
     // This is useful if you want the scene to have the exact same dimensions as the view
@@ -32,6 +31,15 @@ BattleScene::BattleScene(QObject *parent) : Scene(parent) {
     rightBar->setPos(1070, 10);
     addItem(leftBar);
     addItem(rightBar);
+    leftWeaponBar = new WeaponBar();
+    leftWeaponBar->setPos(10, 40);
+    rightWeaponBar = new WeaponBar();
+    rightWeaponBar->setPos(1070, 40);
+    addItem(leftWeaponBar);
+    addItem(rightWeaponBar);
+    Knife* testKnife = new Knife();
+    testKnife->setPos(300, 650);
+    addItem(testKnife);
 }
 
 void BattleScene::processInput() {
@@ -102,6 +110,8 @@ void BattleScene::update() {
     Scene::update();
     leftBar->setLife(character->getLifeValue());
     rightBar->setLife(character2->getLifeValue());
+    leftWeaponBar->setWeaponPoints(character->getCurrentWeaponPoints(), character->getMaxWeaponPoints());
+    rightWeaponBar->setWeaponPoints(character2->getCurrentWeaponPoints(), character2->getMaxWeaponPoints());
 }
 
 void BattleScene::processMovement() {

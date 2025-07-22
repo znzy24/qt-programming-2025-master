@@ -33,12 +33,16 @@ add_executable(qt_programming_2024 src/main.cpp
         src/Items/Maps/Platform.h
         src/Items/Mountable.cpp
         src/Items/Mountable.h
-        src/Items/HealthBar/HealthBar.cpp
-        src/Items/HealthBar/HealthBar.h
+        src/Items/Bar/HealthBar.cpp
+        src/Items/Bar/HealthBar.h
+        src/Items/Bar/WeaponBar.cpp
+        src/Items/Bar/WeaponBar.h
         src/Items/Weapons/Weapon.cpp
         src/Items/Weapons/Weapon.h
         src/Items/Weapons/Fist.h
-        src/Items/Weapons/Fist.cpp)
+        src/Items/Weapons/Fist.cpp
+        src/Items/Weapons/Knife.h
+        src/Items/Weapons/Knife.cpp)
 target_link_libraries(qt_programming_2024
         Qt::Core
         Qt::Gui

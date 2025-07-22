@@ -8,6 +8,7 @@ class Character;
 
 enum class WeaponType {
     Fist,
+    Knife,
     Sword, 
     Bow,    
     Staff    
@@ -25,6 +26,7 @@ public:
     WeaponType getType() const { return weaponType; }
     int getDamage() const { return damage; }
     qreal getRange() const { return attackRange; }
+    virtual int getCost() const { return 0; }
 
 protected:
     WeaponType weaponType;

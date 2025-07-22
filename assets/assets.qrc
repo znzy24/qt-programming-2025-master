@@ -6,5 +6,6 @@
         <file>Items/Maps/Soil.png</file>
         <file>Items/Maps/Grass.png</file>
         <file>Items/Maps/Ice.png</file>
+        <file>Items/Weapons/Knife.png</file>
     </qresource>
 </RCC>

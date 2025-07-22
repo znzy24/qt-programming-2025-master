@@ -19,19 +19,4 @@ void Weapon::unmount() {
     }
 }
 
-void Weapon::attack(Character* attacker) {
-    if (!attacker || !attacker->scene()) return;
-    
-    QPointF attackDirection = attacker->isFacingLeft() ? QPointF(-1, 0) : QPointF(1, 0);
-    QPointF attackPos = attacker->pos() + attackDirection * attackRange;
-    QRectF attackArea(attackPos.x() - 30, attackPos.y() - 50, 60, 100);
-    
-    for (QGraphicsItem* item : attacker->scene()->items(attackArea)) {
-        if (auto enemy = dynamic_cast<Character*>(item)) {
-            if (enemy != attacker) {
-                enemy->takeDamage(damage);
-                break;
-            }
-        }
-    }
-}
+void Weapon::attack(Character* attacker){}

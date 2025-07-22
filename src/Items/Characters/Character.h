@@ -6,6 +6,7 @@
 #include "../Maps/Map.h"
 #include "../Maps/Platform.h"
 #include "../Weapons/Fist.h"
+#include "../Weapons/Knife.h"
 
 enum PoseState { Stand, Crouch };
 
@@ -57,6 +58,17 @@ public:
 
     [[nodiscard]] bool isFacingLeft() const;
 
+    void updateWeaponPosition();
+
+    int getCurrentWeaponPoints() const { return currentWeaponPoints; }
+    int getMaxWeaponPoints() const { return maxWeaponPoints; }
+    void setWeaponPoints(int points, int maxPoints = 1) { 
+        currentWeaponPoints = points; 
+        maxWeaponPoints = maxPoints; 
+    }
+    void consumeWeaponPoint(int point) { 
+        if (currentWeaponPoints > 0) currentWeaponPoints -= point; 
+    }
 protected:
     Weapon *weapon{};
     QPointF velocity{};
@@ -75,7 +87,9 @@ protected:
     qreal nearestPlatformY = 1e9;
     bool isStandingOnPlatform(qreal* platformY = nullptr, PlatformType* type = nullptr);
     bool attackDown{};
-    bool facingLeft{false}; 
+    bool facingLeft{false};
+    int currentWeaponPoints = 1;
+    int maxWeaponPoints = 1;
 };
 
 
