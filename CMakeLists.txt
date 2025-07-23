@@ -42,7 +42,17 @@ add_executable(qt_programming_2024 src/main.cpp
         src/Items/Weapons/Fist.h
         src/Items/Weapons/Fist.cpp
         src/Items/Weapons/Knife.h
-        src/Items/Weapons/Knife.cpp)
+        src/Items/Weapons/Knife.cpp
+        src/Items/Weapons/SolidBall.h
+        src/Items/Weapons/SolidBall.cpp
+        src/Items/Weapons/Rifle.h
+        src/Items/Weapons/Rifle.cpp
+        src/Items/Weapons/Sniper.h
+        src/Items/Weapons/Sniper.cpp
+        src/Items/FallingItem.h
+        src/Items/FallingItem.cpp
+        src/Items/Weapons/Sniper.cpp
+)
 target_link_libraries(qt_programming_2024
         Qt::Core
         Qt::Gui

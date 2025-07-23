@@ -7,6 +7,7 @@
 #include "../Maps/Platform.h"
 #include "../Weapons/Fist.h"
 #include "../Weapons/Knife.h"
+#include "../Weapons/SolidBall.h"
 
 enum PoseState { Stand, Crouch };
 

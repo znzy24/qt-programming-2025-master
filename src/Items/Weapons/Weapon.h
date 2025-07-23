@@ -8,7 +8,8 @@ class Character;
 
 enum class WeaponType {
     Fist,
-    Knife,   
+    Knife,
+    SolidBall  
 };
 
 class Weapon : public Item, public Mountable {
@@ -19,11 +20,10 @@ public:
     void unmount() override;
     
     virtual void attack(Character* attacker);
-    
-    WeaponType getType() const { return weaponType; }
-    int getDamage() const { return damage; }
-    qreal getRange() const { return attackRange; }
+
     virtual int getCost() const { return 0; }
+    virtual int getInitialPoints() const { return 1; }
+    virtual int getMaxPoints() const { return 1; }
 
 protected:
     WeaponType weaponType;

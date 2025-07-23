@@ -10,4 +10,4 @@ public:
     void attack(Character* attacker) override;
 };
 
-#endif //QT_PROGRAMMING_2024_FIST_H
+#endif

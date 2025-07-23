@@ -7,5 +7,10 @@
         <file>Items/Maps/Grass.png</file>
         <file>Items/Maps/Ice.png</file>
         <file>Items/Weapons/Knife.png</file>
+        <file>Items/Weapons/SolidBall.png</file>
+        <file>Items/Weapons/Rifle.png</file>
+        <file>Items/Weapons/Bullet.png</file>
+        <file>Items/Weapons/Sniper.png</file>
+        <file>Items/Weapons/SniperBullet.png</file>
     </qresource>
 </RCC>

@@ -187,14 +187,19 @@ bool Character::isCrouching() const {
 }
 
 void Character::pickupWeapon(Weapon* newWeapon) {
-    if (newWeapon == nullptr) return;
-    
     Weapon* oldWeapon = weapon;
 
     if (oldWeapon) {
         oldWeapon->unmount();
         scene()->removeItem(oldWeapon);
         delete oldWeapon;
+    }
+    
+    if (newWeapon == nullptr) {
+        weapon = nullptr;
+        // 如果没有武器，恢复默认点数
+        setWeaponPoints(1, 1);
+        return;
     }
 
     weapon = newWeapon;
@@ -203,6 +208,9 @@ void Character::pickupWeapon(Weapon* newWeapon) {
     newWeapon->setVisible(true);
     newWeapon->setZValue(5);
     updateWeaponPosition();
+    
+    // 根据武器自身定义更新武器点数
+    setWeaponPoints(newWeapon->getInitialPoints(), newWeapon->getMaxPoints());
 }
 
 bool Character::isFacingLeft() const {
@@ -221,7 +229,7 @@ void Character::attack() {
     
     if (weapon) {
         // 检查武器是否需要消耗点数
-        int weaponCost = weapon->getCost(); // 需要在Weapon类中添加这个方法
+        int weaponCost = weapon->getCost();
         
         if (weaponCost > 0 && currentWeaponPoints < weaponCost) {
             // 武器点数不足，无法攻击
