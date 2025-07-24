@@ -3,6 +3,9 @@
 #include <QGraphicsOpacityEffect>
 #include "Maps/Platform.h"
 
+// 初始化静态成员变量
+QHash<Item*, FallingItem*> FallingItem::activeControllers;
+
 FallingItem::FallingItem(Item* item, QGraphicsScene* scene, QObject* parent)
     : QObject(parent), item(item), scene(scene)
 {
@@ -14,6 +17,11 @@ FallingItem::FallingItem(Item* item, QGraphicsScene* scene, QObject* parent)
     destroyTimer = new QTimer(this);
     destroyTimer->setSingleShot(true);
     connect(destroyTimer, &QTimer::timeout, this, &FallingItem::autoDestroy);
+    
+    // 将此控制器添加到活动控制器列表
+    if (item) {
+        activeControllers[item] = this;
+    }
 }
 
 FallingItem::~FallingItem()
@@ -27,6 +35,12 @@ FallingItem::~FallingItem()
         destroyTimer->stop();
         destroyTimer->deleteLater();
     }
+    
+    // 从活动控制器列表中移除
+    if (item && activeControllers.contains(item)) {
+        activeControllers.remove(item);
+    }
+    
     // 注意：不要在这里删除item，因为它可能已经被角色拾取
 }
 
@@ -92,10 +106,34 @@ void FallingItem::updatePosition()
     }
 }
 
+// 取消自动销毁（当物品被拾取时调用）
+void FallingItem::cancelAutoDestroy() {
+    if (destroyTimer) {
+        destroyTimer->stop(); // 停止计时器
+    }
+    
+    // 从活动控制器列表中移除
+    if (item) {
+        activeControllers.remove(item);
+    }
+    
+    // 安全地删除控制器（但不删除物品）
+    QTimer::singleShot(0, this, &QObject::deleteLater);
+}
+
+// 静态方法：根据物品查找对应的FallingItem控制器
+FallingItem* FallingItem::findControllerForItem(Item* item) {
+    if (!item || !activeControllers.contains(item)) {
+        return nullptr;
+    }
+    return activeControllers[item];
+}
+
 void FallingItem::autoDestroy()
 {
     // 30秒后如果物品仍未被拾取，则自动销毁
     if (item && scene) {
+        
         // 添加一个淡出动画效果
         QGraphicsOpacityEffect* effect = new QGraphicsOpacityEffect();
         effect->setOpacity(1.0);
@@ -104,7 +142,7 @@ void FallingItem::autoDestroy()
         // 使用计时器创建淡出效果（1秒淡出）
         QTimer* fadeTimer = new QTimer(this);
         qreal opacity = 1.0;
-        connect(fadeTimer, &QTimer::timeout, [this, effect, fadeTimer, &opacity]() {
+        connect(fadeTimer, &QTimer::timeout, [this, effect, fadeTimer, opacity = 1.0]() mutable {
             opacity -= 0.05;
             if (opacity <= 0) {
                 fadeTimer->stop();

@@ -8,12 +8,12 @@
 // SniperBullet 实现 -----------------------------------------
 
 SniperBullet::SniperBullet(QGraphicsScene* scene, const QPointF& startPos, bool facingLeft, int damage, Character* shooter)
-    : Item(nullptr, ":/Items/Weapons/SniperBullet.png"), damage(damage), shooter(shooter)
+    : Item(nullptr, ":/Items/Weapons/Bullet.png"), damage(damage), shooter(shooter)
 {
     // 设置图像大小
     if (pixmapItem) {
         QPixmap original = pixmapItem->pixmap();
-        QPixmap scaled = original.scaled(15, 5, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap scaled = original.scaled(30, 15, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         pixmapItem->setPixmap(scaled);
         pixmapItem->setOffset(-scaled.width() / 2, -scaled.height() / 2);
         
@@ -107,12 +107,12 @@ bool SniperBullet::checkCollision() {
 // Sniper 实现 -----------------------------------------
 
 Sniper::Sniper(QGraphicsItem* parent)
-    : Weapon(parent, ":/Items/Weapons/Sniper.png", WeaponType::Fist, 30, 800) // 伤害值高达30
+    : Weapon(parent, ":/Items/Weapons/Sniper.png", WeaponType::Sniper, 30, 800) // 伤害值高达30
 {
     // 设置武器外观
     if (pixmapItem) {
         QPixmap original = pixmapItem->pixmap();
-        QPixmap scaled = original.scaled(70, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap scaled = original.scaled(100, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         pixmapItem->setPixmap(scaled);
         pixmapItem->setOffset(-scaled.width() / 2, -scaled.height() / 2);
     }
@@ -138,11 +138,11 @@ void Sniper::attack(Character* attacker) {
     bool facingLeft = attacker->isFacingLeft();
     
     // 根据角色朝向调整发射位置
-    startPos.ry() -= 20;  // 从角色上半身发射
+    startPos.ry() -= 70;  // 从角色上半身发射
     if (facingLeft) {
-        startPos.rx() -= 50;  // 左手发射偏移
+        startPos.rx() -= 60;  // 左手发射偏移
     } else {
-        startPos.rx() += 50;  // 右手发射偏移
+        startPos.rx() += 60;  // 右手发射偏移
     }
     
     // 创建并发射狙击子弹

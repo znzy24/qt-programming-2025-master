@@ -3,6 +3,7 @@
 
 #include "Item.h"
 #include <QTimer>
+#include <QHash>
 
 // 下落物品类，处理物品从空中掉落的逻辑
 class FallingItem : public QObject {
@@ -14,6 +15,18 @@ public:
 
     // 开始下落
     void startFalling();
+    
+    // 取消自动销毁（当物品被拾取时调用）
+    void cancelAutoDestroy();
+    
+    // 获取管理的物品
+    Item* getItem() const { return item; }
+    
+    // 静态方法：根据物品查找对应的FallingItem控制器
+    static FallingItem* findControllerForItem(Item* item);
+    
+    // 所有活动的FallingItem控制器（用于查找）
+    static QHash<Item*, FallingItem*> activeControllers;
 
 private slots:
     // 更新位置

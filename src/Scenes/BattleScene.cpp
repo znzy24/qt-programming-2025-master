@@ -1,5 +1,7 @@
 #include <QDebug>
 #include <QRandomGenerator>
+#include <functional>
+#include <vector>
 #include "BattleScene.h"
 #include "../Items/Maps/Battlefield.h"
 #include "../Items/Maps/Platform.h"
@@ -21,7 +23,7 @@ BattleScene::BattleScene(QObject *parent) : Scene(parent) {
     addItem(character);
     addItem(character2);
     character->setPos(100, 650);
-    character2->setPos(800, 650);
+    character2->setPos(1100, 650);
     
     // 初始化游戏结束文本，但不显示
     gameOverText = new QGraphicsTextItem();
@@ -40,6 +42,12 @@ BattleScene::BattleScene(QObject *parent) : Scene(parent) {
     connect(itemDropTimer, &QTimer::timeout, this, &BattleScene::spawnRandomItem);
     // 每5-10秒随机掉落一个物品
     itemDropTimer->start(5000 + QRandomGenerator::global()->bounded(5000));
+    
+    // 初始化物品自动清除计时器
+    itemCleanupTimer = new QTimer(this);
+    connect(itemCleanupTimer, &QTimer::timeout, this, &BattleScene::cleanupOldItems);
+    // 每5秒检查一次是否有需要清除的物品
+    itemCleanupTimer->start(5000);
 
     addItem(new Platform(PlatformType::Soil, 0, 670, 26));
     addItem(new Platform(PlatformType::Soil, 50, 520, 8));
@@ -94,11 +102,29 @@ void BattleScene::keyPressEvent(QKeyEvent *event) {
             character->setLifeValue(character->getMaxLifeValue());
             character2->setLifeValue(character2->getMaxLifeValue());
             character->setPos(100, 650);
-            character2->setPos(800, 650);
+            character2->setPos(1100, 650);
             
             // 移除武器
             character->pickupWeapon(nullptr);
             character2->pickupWeapon(nullptr);
+            
+            // 清理场景中的所有掉落物品
+            for (const DroppedItemInfo& info : droppedItems) {
+                if (info.item && !info.isPicked) {
+                    // 获取物品对应的FallingItem控制器
+                    FallingItem* controller = FallingItem::findControllerForItem(info.item);
+                    if (controller) {
+                        delete controller; // 这会移除控制器并从场景中移除物品
+                    } else if (info.item->scene() == this) {
+                        // 如果没有控制器但物品仍在场景中
+                        removeItem(info.item);
+                        delete info.item;
+                    }
+                }
+            }
+            
+            // 清空掉落物品列表
+            droppedItems.clear();
             
             // 重新启动物品掉落计时器（如果已停止）
             if (!itemDropTimer->isActive()) {
@@ -113,11 +139,11 @@ void BattleScene::keyPressEvent(QKeyEvent *event) {
             if (character != nullptr) character->setLeftDown(true); break;
         case Qt::Key_D:
             if (character != nullptr) character->setRightDown(true); break;
-        case Qt::Key_J:
+        case Qt::Key_S:
             if (character != nullptr) character->setPickDown(true); break;
         case Qt::Key_W:
             if (character != nullptr) character->setJumpDown(true); break;
-        case Qt::Key_K:
+        case Qt::Key_F:
             if (character != nullptr) character->setAttackDown(true); break;
         case Qt::Key_Left:
             if (character2 != nullptr) character2->setLeftDown(true); break;
@@ -127,7 +153,7 @@ void BattleScene::keyPressEvent(QKeyEvent *event) {
             if (character2 != nullptr) character2->setPickDown(true); break;
         case Qt::Key_Up:
             if (character2 != nullptr) character2->setJumpDown(true); break;
-        case Qt::Key_L:
+        case Qt::Key_0:
             if (character2 != nullptr) character2->setAttackDown(true); break;
         default:
             Scene::keyPressEvent(event);
@@ -141,11 +167,11 @@ void BattleScene::keyReleaseEvent(QKeyEvent *event) {
             if (character != nullptr) character->setLeftDown(false); break;
         case Qt::Key_D:
             if (character != nullptr) character->setRightDown(false); break;
-        case Qt::Key_J:
+        case Qt::Key_S:
             if (character != nullptr) character->setPickDown(false); break;
         case Qt::Key_W:
             if (character != nullptr) character->setJumpDown(false); break;
-        case Qt::Key_K:
+        case Qt::Key_F:
             if (character != nullptr) character->setAttackDown(false); break;
             case Qt::Key_Left:
             if (character2 != nullptr) character2->setLeftDown(false); break;
@@ -155,7 +181,7 @@ void BattleScene::keyReleaseEvent(QKeyEvent *event) {
             if (character2 != nullptr) character2->setPickDown(false); break;
         case Qt::Key_Up:
             if (character2 != nullptr) character2->setJumpDown(false); break;
-        case Qt::Key_L:
+        case Qt::Key_0:
             if (character2 != nullptr) character2->setAttackDown(false); break;
         default:
             Scene::keyReleaseEvent(event);
@@ -262,6 +288,14 @@ void BattleScene::pickupMountable(Character *character, Mountable *mountable) {
     if (item) {
         // 移除任何可能的淡出效果
         item->setGraphicsEffect(nullptr);
+        
+        // 标记物品已被拾取（用于自动清理）
+        for (auto& info : droppedItems) {
+            if (info.item == item) {
+                info.isPicked = true;
+                break;
+            }
+        }
     }
     
     // 处理武器拾取
@@ -285,35 +319,47 @@ void BattleScene::spawnRandomItem() {
         return;
     }
     
-    // 随机选择一种物品类型
-    int itemType = QRandomGenerator::global()->bounded(7); // 0-6之间的随机数
-    Item* newItem = nullptr;
+    // 定义物品权重表
+    // 小刀20，实心球15，步枪10，狙击枪5，绷带30，肾上腺素15，医疗箱5
+    struct ItemInfo {
+        int weight;            // 权重值
+        std::function<Item*()> creator;  // 创建物品的函数
+    };
     
-    switch (itemType) {
-        // 武器类
-        case 0:
-            newItem = new Knife();
+    std::vector<ItemInfo> itemWeights = {
+        {20, []() { return new Knife(); }},         // 小刀
+        {15, []() { return new SolidBall(); }},     // 实心球
+        {10, []() { return new Rifle(); }},         // 步枪
+        {5,  []() { return new Sniper(); }},        // 狙击枪
+        {30, []() { return new Bandage(); }},       // 绷带
+        {15, []() { return new Adrenaline(); }},    // 肾上腺素
+        {5,  []() { return new MedKit(); }}         // 医疗箱
+    };
+    
+    // 计算总权重
+    int totalWeight = 0;
+    for (const auto& item : itemWeights) {
+        totalWeight += item.weight;
+    }
+    
+    // 生成一个随机值，范围为[0, totalWeight)
+    int randomValue = QRandomGenerator::global()->bounded(totalWeight);
+    
+    // 根据权重选择物品
+    Item* newItem = nullptr;
+    int accumulatedWeight = 0;
+    
+    for (const auto& item : itemWeights) {
+        accumulatedWeight += item.weight;
+        if (randomValue < accumulatedWeight) {
+            newItem = item.creator();
             break;
-        case 1:
-            newItem = new SolidBall();
-            break;
-        case 2:
-            newItem = new Rifle();
-            break;
-        case 3:
-            newItem = new Sniper();
-            break;
-        
-        // 装备类
-        case 4:
-            newItem = new Bandage();
-            break;
-        case 5:
-            newItem = new MedKit();
-            break;
-        case 6:
-            newItem = new Adrenaline();
-            break;
+        }
+    }
+    
+    // 如果出现错误，默认创建一个绷带
+    if (!newItem) {
+        newItem = new Bandage();
     }
     
     if (!newItem) return;
@@ -327,6 +373,13 @@ void BattleScene::spawnRandomItem() {
     // 创建掉落控制器并开始掉落
     FallingItem* fallingItem = new FallingItem(newItem, this, this);
     fallingItem->startFalling();
+    
+    // 记录新掉落的物品及其掉落时间
+    DroppedItemInfo itemInfo;
+    itemInfo.item = newItem;
+    itemInfo.dropTime = QDateTime::currentMSecsSinceEpoch();
+    itemInfo.isPicked = false;
+    droppedItems.append(itemInfo);
     
     // 调整下一次生成物品的时间间隔（5-10秒）
     itemDropTimer->setInterval(5000 + QRandomGenerator::global()->bounded(5000));
@@ -344,7 +397,7 @@ bool BattleScene::checkGameOver() {
         // 右侧角色(character2)胜利
         winner = 2;
         gameOver = true;
-        gameOverText->setPlainText("玩家2胜利！\n按R键重新开始");
+        gameOverText->setPlainText("恭喜玩家2胜利！\n按R键重新开始");
         gameOverText->setVisible(true);
         return true;
     }
@@ -354,11 +407,58 @@ bool BattleScene::checkGameOver() {
         // 左侧角色(character)胜利
         winner = 1;
         gameOver = true;
-        gameOverText->setPlainText("玩家1胜利！\n按R键重新开始");
+        gameOverText->setPlainText("恭喜玩家1胜利！\n按R键重新开始");
         gameOverText->setVisible(true);
         return true;
     }
     
     // 游戏继续
     return false;
+}
+
+// 清理超时未被拾取的物品
+void BattleScene::cleanupOldItems() {
+    qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
+    const qint64 timeoutMs = 30000; // 30秒超时
+    
+    // 遍历所有记录的掉落物品
+    for (int i = droppedItems.size() - 1; i >= 0; i--) {
+        auto& itemInfo = droppedItems[i];
+        
+        // 检查是否已被拾取或者不存在
+        if (itemInfo.isPicked || !itemInfo.item || !itemInfo.item->scene()) {
+            droppedItems.removeAt(i);
+            continue;
+        }
+        
+        // 检查是否超时
+        if (currentTime - itemInfo.dropTime > timeoutMs) {
+            // 添加淡出效果
+            QGraphicsOpacityEffect* effect = new QGraphicsOpacityEffect();
+            effect->setOpacity(1.0);
+            itemInfo.item->setGraphicsEffect(effect);
+            
+            // 创建淡出动画
+            QPropertyAnimation* animation = new QPropertyAnimation(effect, "opacity");
+            animation->setDuration(1000); // 1秒钟淡出
+            animation->setStartValue(1.0);
+            animation->setEndValue(0.0);
+            
+            // 在动画完成后删除物品
+            Item* itemToRemove = itemInfo.item;
+            QObject::connect(animation, &QPropertyAnimation::finished, [this, itemToRemove, animation]() {
+                if (itemToRemove && itemToRemove->scene()) {
+                    removeItem(itemToRemove);
+                    delete itemToRemove;
+                }
+                animation->deleteLater();
+            });
+            
+            // 开始动画
+            animation->start(QAbstractAnimation::DeleteWhenStopped);
+            
+            // 从列表中移除
+            droppedItems.removeAt(i);
+        }
+    }
 }

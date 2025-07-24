@@ -2,6 +2,7 @@
 #define QT_PROGRAMMING_2024_CHARACTER_H
 
 #include <QGraphicsEllipseItem>
+#include <QTimer>
 #include "../Weapons/Weapon.h"
 #include "../Maps/Map.h"
 #include "../Maps/Platform.h"
@@ -14,6 +15,7 @@ enum PoseState { Stand, Crouch };
 class Character : public Item {
 public:
     explicit Character(QGraphicsItem *parent);
+    virtual ~Character();
 
     [[nodiscard]] bool isLeftDown() const;
     void setLeftDown(bool leftDown);
@@ -51,9 +53,15 @@ public:
     void consumeWeaponPoint(int point);
     void updateWeaponPosition();
     
-    // 获取和设置速度乘数（用于肾上腺素等装备的速度加成效果）
     qreal getSpeedMultiplier() const;
     void setSpeedMultiplier(qreal multiplier);
+    
+    void showAttackEffect();
+    void hideAttackEffect();
+    
+    void showDamageEffect();
+    void hideDamageEffect();
+    
 protected:
     Weapon *weapon{};
     QPointF velocity{};
@@ -74,7 +82,16 @@ protected:
     bool facingLeft{false};
     int currentWeaponPoints = 1;
     int maxWeaponPoints = 1;
-    qreal speedMultiplier = 1.0; // 速度乘数，默认为1.0，可被装备提升
+    qreal speedMultiplier = 1.0;
+    
+    QTimer* attackAnimationTimer{nullptr};
+    QGraphicsPixmapItem* attackEffectItem{nullptr};
+    bool isAttackAnimationActive{false};
+    
+    QTimer* damageAnimationTimer{nullptr};
+    int damageFlashCount{0};
+    bool isDamageAnimationActive{false};
+    QPixmap originalPixmap;
 };
 
 

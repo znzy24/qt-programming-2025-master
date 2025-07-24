@@ -21,7 +21,7 @@ private:
     int damage;
     QTimer* moveTimer;
     int lifetime = 0;
-    const int maxLifetime = 100;
+    const int maxLifetime = 150; // 增加生命周期，使其能飞得更远
     bool checkCollision();
     Character* shooter; // 记录发射该球的角色
 };

@@ -21,13 +21,13 @@ ProjectileBall::ProjectileBall(QGraphicsScene* scene, const QPointF& startPos, b
     setPos(startPos);
     setZValue(20);  // 确保显示在大多数物体上方
     
-    // 初速度设置 (斜抛运动)
-    xVelocity = facingLeft ? -3.0 : 3.0;  // 水平速度
-    yVelocity = -2.5;                     // 初始向上的速度
+    // 初速度设置 (斜抛运动) - 增加了抛掷速度和高度
+    xVelocity = facingLeft ? -4.5 : 4.5;  // 增加水平速度
+    yVelocity = -3.8;                     // 增加初始向上的速度（更高的弧线）
     
     // 添加随机性，使每次投掷略有不同
-    xVelocity += QRandomGenerator::global()->bounded(1001) / 1000.0 - 0.5;
-    yVelocity += QRandomGenerator::global()->bounded(601) / 1000.0 - 0.3;
+    xVelocity += QRandomGenerator::global()->bounded(801) / 1000.0 - 0.4;  // 减少水平随机性
+    yVelocity += QRandomGenerator::global()->bounded(501) / 1000.0 - 0.25;  // 减少垂直随机性
     
     // 添加到场景
     scene->addItem(this);
@@ -53,6 +53,11 @@ void ProjectileBall::advance() {
     // 应用物理运动 (斜抛运动)
     yVelocity += gravity;  // 重力加速度
     setPos(pos().x() + xVelocity, pos().y() + yVelocity);
+    
+    // 添加旋转效果，让实心球看起来在飞行过程中旋转
+    // 根据水平速度方向决定旋转方向
+    qreal rotationSpeed = xVelocity > 0 ? 10.0 : -10.0;
+    setRotation(rotation() + rotationSpeed);
     
     // 检测碰撞
     if (checkCollision()) {
@@ -103,7 +108,7 @@ bool ProjectileBall::checkCollision() {
 // SolidBall 实现 -----------------------------------------
 
 SolidBall::SolidBall(QGraphicsItem* parent)
-    : Weapon(parent, ":/Items/Weapons/SolidBall.png", WeaponType::Fist, 15, 300)
+    : Weapon(parent, ":/Items/Weapons/SolidBall.png", WeaponType::SolidBall, 15, 300)
 {
     // 设置武器外观
     if (pixmapItem) {
@@ -124,11 +129,11 @@ void SolidBall::attack(Character* attacker) {
     bool facingLeft = attacker->isFacingLeft();
     
     // 根据角色朝向调整发射位置
-    startPos.ry() -= 30;  // 从角色上半身发射
+    startPos.ry() -= 65;  // 从角色更高位置发射（头部位置）
     if (facingLeft) {
-        startPos.rx() -= 30;  // 左手发射偏移
+        startPos.rx() -= 30;  // 左手发射偏移增加
     } else {
-        startPos.rx() += 30;  // 右手发射偏移
+        startPos.rx() += 30;  // 右手发射偏移增加
     }
     
     // 创建并发射实心球

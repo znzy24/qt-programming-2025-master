@@ -12,7 +12,7 @@ Bullet::Bullet(QGraphicsScene* scene, const QPointF& startPos, bool facingLeft, 
     // 设置图像大小
     if (pixmapItem) {
         QPixmap original = pixmapItem->pixmap();
-        QPixmap scaled = original.scaled(10, 5, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap scaled = original.scaled(30, 15, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         pixmapItem->setPixmap(scaled);
         pixmapItem->setOffset(-scaled.width() / 2, -scaled.height() / 2);
     }
@@ -100,12 +100,12 @@ bool Bullet::checkCollision() {
 // Rifle 实现 -----------------------------------------
 
 Rifle::Rifle(QGraphicsItem* parent)
-    : Weapon(parent, ":/Items/Weapons/Rifle.png", WeaponType::Fist, 10, 500)
+    : Weapon(parent, ":/Items/Weapons/Rifle.png", WeaponType::Rifle, 10, 500)
 {
     // 设置武器外观
     if (pixmapItem) {
         QPixmap original = pixmapItem->pixmap();
-        QPixmap scaled = original.scaled(60, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap scaled = original.scaled(100, 25, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         pixmapItem->setPixmap(scaled);
         pixmapItem->setOffset(-scaled.width() / 2, -scaled.height() / 2);
     }
@@ -131,11 +131,11 @@ void Rifle::attack(Character* attacker) {
     bool facingLeft = attacker->isFacingLeft();
     
     // 根据角色朝向调整发射位置
-    startPos.ry() -= 20;  // 从角色上半身发射
+    startPos.ry() -= 70;  // 从角色上半身发射
     if (facingLeft) {
-        startPos.rx() -= 40;  // 左手发射偏移
+        startPos.rx() -= 60;  // 左手发射偏移
     } else {
-        startPos.rx() += 40;  // 右手发射偏移
+        startPos.rx() += 60;  // 右手发射偏移
     }
     
     // 创建并发射子弹

@@ -9,7 +9,9 @@ class Character;
 enum class WeaponType {
     Fist,
     Knife,
-    SolidBall  
+    SolidBall,
+    Rifle,
+    Sniper
 };
 
 class Weapon : public Item, public Mountable {
@@ -24,6 +26,8 @@ public:
     virtual int getCost() const { return 0; }
     virtual int getInitialPoints() const { return 1; }
     virtual int getMaxPoints() const { return 1; }
+    
+    WeaponType getWeaponType() const { return weaponType; }
 
 protected:
     WeaponType weaponType;

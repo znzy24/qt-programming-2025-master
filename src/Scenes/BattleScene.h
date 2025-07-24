@@ -2,6 +2,9 @@
 #define QT_PROGRAMMING_2024_BATTLESCENE_H
 
 #include <QKeyEvent>
+#include <QDateTime>
+#include <QPropertyAnimation>
+#include <QGraphicsOpacityEffect>
 #include "Scene.h"
 #include "../Items/Maps/Map.h"
 #include "../Items/Characters/Character.h"
@@ -61,8 +64,22 @@ private:
     // 物品掉落计时器
     QTimer* itemDropTimer = nullptr;
     
+    // 物品自动清除计时器
+    QTimer* itemCleanupTimer = nullptr;
+    
+    // 存储场景中的掉落物品及其掉落时间
+    struct DroppedItemInfo {
+        Item* item;
+        qint64 dropTime;
+        bool isPicked = false;
+    };
+    QList<DroppedItemInfo> droppedItems;
+    
     // 生成随机掉落物品
     void spawnRandomItem();
+    
+    // 清理超时未被拾取的物品
+    void cleanupOldItems();
 };
 
 

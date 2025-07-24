@@ -1,17 +1,59 @@
 #include <QTransform>
 #include <QDebug>
 #include <QDateTime>
+#include <QGraphicsScene>
+#include <QGraphicsColorizeEffect>
 #include "Character.h"
 
 
 Character::Character(QGraphicsItem *parent) : Item(parent, ":/Items/Characters/CharacterStand.png") {
     if (pixmapItem) {
         QPixmap original = pixmapItem->pixmap();
-        QPixmap scaled = original.scaled(72, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap scaled = original.scaled(80, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         pixmapItem->setPixmap(scaled);
         pixmapItem->setOffset(-scaled.width() / 2, -scaled.height());
+
+        originalPixmap = scaled;
     }
     setZValue(10);
+    
+    // 初始化朝向设置（默认朝右）
+    facingLeft = false;  // 默认朝右
+    setTransform(QTransform().scale(-1, 1));  // 设置图像朝右的变换
+    
+    attackAnimationTimer = new QTimer();
+    attackAnimationTimer->setSingleShot(true);
+    QObject::connect(attackAnimationTimer, &QTimer::timeout, [this]() {
+        hideAttackEffect();
+    });
+    
+    damageAnimationTimer = new QTimer();
+    damageAnimationTimer->setSingleShot(true);
+    QObject::connect(damageAnimationTimer, &QTimer::timeout, [this]() {
+        hideDamageEffect();
+    });
+}
+
+Character::~Character() {
+    if (attackAnimationTimer) {
+        attackAnimationTimer->stop();
+        delete attackAnimationTimer;
+        attackAnimationTimer = nullptr;
+    }
+    
+    if (damageAnimationTimer) {
+        damageAnimationTimer->stop();
+        delete damageAnimationTimer;
+        damageAnimationTimer = nullptr;
+    }
+    
+    if (attackEffectItem) {
+        if (attackEffectItem->scene()) {
+            attackEffectItem->scene()->removeItem(attackEffectItem);
+        }
+        delete attackEffectItem;
+        attackEffectItem = nullptr;
+    }
 }
 
 bool Character::isLeftDown() const {
@@ -95,9 +137,11 @@ void Character::setCrouchPose() {
     if (poseState == Crouch) return;
     if (pixmapItem) {
         QPixmap crouchPixmap(":/Items/Characters/CharacterCrouch.png");
-        QPixmap scaled = crouchPixmap.scaled(72, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap scaled = crouchPixmap.scaled(80
+            , 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         pixmapItem->setPixmap(scaled);
         pixmapItem->setOffset(-scaled.width() / 2, -scaled.height());
+        originalPixmap = scaled;
     }
     setZValue(10);
     poseState = Crouch;
@@ -107,9 +151,10 @@ void Character::setStandPose() {
     if (poseState == Stand) return;
     if (pixmapItem) {
         QPixmap standPixmap(":/Items/Characters/CharacterStand.png");
-        QPixmap scaled = standPixmap.scaled(72, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap scaled = standPixmap.scaled(80, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         pixmapItem->setPixmap(scaled);
         pixmapItem->setOffset(-scaled.width() / 2, -scaled.height());
+        originalPixmap = scaled;
     }
     setZValue(10);
     poseState = Stand;
@@ -118,14 +163,13 @@ void Character::setStandPose() {
 void Character::processInput() {
     crouching = isPickDown();
     auto velocity = this->velocity;
-    const auto baseSpeed = 1.0;
+    const auto baseSpeed = 0.6;
     const auto jumpSpeed = -1.5;
 
     PlatformType platformType = PlatformType::Soil;
     qreal dummyY;
     isStandingOnPlatform(&dummyY, &platformType);
 
-    // 应用移动速度乘数（正常速度 * 平台速度修正 * 装备速度加成）
     qreal moveSpeed = baseSpeed * speedMultiplier;
     
     qreal actualMoveSpeed = moveSpeed;
@@ -161,18 +205,19 @@ void Character::processInput() {
 
     if (platformType == PlatformType::Grass && crouching) {
         if (pixmapItem) pixmapItem->setVisible(false);
+        if (weapon) weapon->setVisible(false);
     } else {
         if (pixmapItem) pixmapItem->setVisible(true);
+        if (weapon) weapon->setVisible(true);
     }
 
-    if (!lastPickDown && pickDown) { // first time pickDown
+    if (!lastPickDown && pickDown) { 
         picking = true;
     } else {
         picking = false;
     }
     lastPickDown = pickDown;
 
-    // 姿态切换
     if (crouching) {
         setCrouchPose();
     }
@@ -200,7 +245,6 @@ void Character::pickupWeapon(Weapon* newWeapon) {
     
     if (newWeapon == nullptr) {
         weapon = nullptr;
-        // 如果没有武器，恢复默认点数
         setWeaponPoints(1, 1);
         return;
     }
@@ -212,7 +256,6 @@ void Character::pickupWeapon(Weapon* newWeapon) {
     newWeapon->setZValue(5);
     updateWeaponPosition();
     
-    // 根据武器自身定义更新武器点数
     setWeaponPoints(newWeapon->getInitialPoints(), newWeapon->getMaxPoints());
 }
 
@@ -224,48 +267,102 @@ void Character::attack() {
     static qint64 lastAttackTime = 0;
     qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
     
-    // 攻击冷却时间 500ms
-    if (currentTime - lastAttackTime < 500) {
+    // 根据武器类型设置不同的冷却时间
+    int cooldownTime = 500; // 默认冷却时间（毫秒）
+    
+    if (weapon) {
+        // 根据武器类型设置不同的冷却时间
+        switch (weapon->getWeaponType()) {
+            case WeaponType::Knife:
+                cooldownTime = 400; // 小刀攻击冷却时间较短
+                break;
+            case WeaponType::SolidBall:
+                cooldownTime = 800; // 投掷物冷却时间较长
+                break;
+            case WeaponType::Rifle:
+                cooldownTime = 350; // 步枪冷却时间
+                break;
+            case WeaponType::Sniper:
+                cooldownTime = 1200; // 狙击枪冷却时间最长
+                break;
+            default:
+                cooldownTime = 500; // 默认冷却时间
+                break;
+        }
+    } else {
+        cooldownTime = 450; // 拳头攻击的冷却时间
+    }
+    
+    // 检查是否已经冷却完毕
+    if (currentTime - lastAttackTime < cooldownTime) {
         return;
     }
     lastAttackTime = currentTime;
     
     if (weapon) {
-        // 检查武器是否需要消耗点数
         int weaponCost = weapon->getCost();
         
         if (weaponCost > 0 && currentWeaponPoints < weaponCost) {
-            // 武器点数不足，无法攻击
             return;
         }
         
-        // 执行攻击
+        showAttackEffect();
+        
         weapon->attack(this);
         
-        // 消耗武器点数（小刀和拳头的cost为0，不消耗点数）
         if (weaponCost > 0) {
             consumeWeaponPoint(weaponCost);
         }
         return;
+    } else {
+        showAttackEffect();
     }
     
-    // 无武器时使用默认拳头攻击
-    static Fist defaultFist; // 静态默认拳头武器
+    static Fist defaultFist;
     defaultFist.attack(this);
 }
 
 void Character::takeDamage(int damage) {
     lifevalue = qMax(0, lifevalue - damage);
-    // 可以在这里添加受伤效果，如闪烁、击退等
+    
+    if (!isDamageAnimationActive && damage > 0) {
+        showDamageEffect();
+    }
 }
 
 void Character::updateWeaponPosition() {
     if (weapon == nullptr) return;
     
-    // 设置武器相对于角色的固定位置（右手位置）
-    QPointF weaponOffset(-25, -30); // 相对位置
+    QPointF weaponOffset(-25, -30);  // 默认偏移量
+    
+    // 根据武器类型调整位置
+    switch (weapon->getWeaponType()) {
+        case WeaponType::Fist:
+            weaponOffset = QPointF(-20, -20);
+            break;
+        case WeaponType::Knife:
+            weaponOffset = QPointF(-45, -67);
+            break;
+        case WeaponType::SolidBall:
+            weaponOffset = QPointF(-30, -65);
+            break;
+        case WeaponType::Rifle:
+            weaponOffset = QPointF(-20, -65);
+            break;
+        case WeaponType::Sniper:
+            weaponOffset = QPointF(-20, -65);
+            break;
+        default:
+            break;
+    }
+    
+    // 如果角色是下蹲状态，调整武器位置更靠下一些
+    if (poseState == Crouch) {
+        weaponOffset.setY(weaponOffset.y() + 5);
+    }
+    
     weapon->setPos(weaponOffset);
-    weapon->setTransform(QTransform().scale(1, 1)); // 保持武器不额外翻转
+    weapon->setTransform(QTransform().scale(1, 1)); 
 }
 
 int Character::getLifeValue() const {
@@ -311,4 +408,173 @@ qreal Character::getSpeedMultiplier() const {
 
 void Character::setSpeedMultiplier(qreal multiplier) {
     speedMultiplier = multiplier;
+}
+
+void Character::showAttackEffect() {
+    if (isAttackAnimationActive) return;
+    
+    isAttackAnimationActive = true;
+    
+    if (!attackEffectItem) {
+        QPixmap effectPixmap;
+        
+        if (weapon) {
+            switch (weapon->getWeaponType()) {
+                case WeaponType::Knife: {
+                    effectPixmap = QPixmap(":/Items/Characters/KnifeAttack.png"); 
+                    effectPixmap = effectPixmap.scaled(50, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                    break;
+                }
+                case WeaponType::SolidBall: {
+                    // 投掷类武器不需要额外的攻击动画，因为有飞行物动画
+                    effectPixmap = QPixmap(1, 1);  // 创建一个几乎不可见的空图像
+                    effectPixmap.fill(Qt::transparent);
+                    break;
+                }
+                case WeaponType::Rifle: {
+                    // 射击类武器不需要额外的攻击动画，因为有子弹飞行动画
+                    effectPixmap = QPixmap(1, 1);
+                    effectPixmap.fill(Qt::transparent);
+                    break;
+                }
+                case WeaponType::Sniper: {
+                    // 射击类武器不需要额外的攻击动画，因为有子弹飞行动画
+                    effectPixmap = QPixmap(1, 1);
+                    effectPixmap.fill(Qt::transparent);
+                    break;
+                }
+                default: {
+                    effectPixmap = QPixmap(32, 32);
+                    effectPixmap.fill(Qt::transparent);
+                    QPainter painter(&effectPixmap);
+                    painter.setPen(QPen(Qt::red, 2));
+                    painter.setBrush(QBrush(QColor(255, 0, 0, 128)));
+                    painter.drawEllipse(0, 0, 30, 30);
+                    break;
+                }
+            }
+        } else {
+            effectPixmap = QPixmap(":/Items/Characters/FistAttack.png"); 
+            effectPixmap = effectPixmap.scaled(50, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        }
+        
+        attackEffectItem = new QGraphicsPixmapItem(effectPixmap);
+        attackEffectItem->setZValue(15);
+        scene()->addItem(attackEffectItem);
+    }
+    
+    QPointF effectPos = pos();
+    int effectDuration = 300; 
+    
+    if (weapon) {
+        switch (weapon->getWeaponType()) {
+            case WeaponType::Rifle:
+            case WeaponType::Sniper:
+            case WeaponType::SolidBall: {
+                // 投掷类和射击类武器不需要显示攻击效果
+                attackEffectItem->setVisible(false);
+                effectDuration = 10;  // 极短的持续时间，因为不需要显示效果
+                break;
+            }
+            case WeaponType::Knife: {
+                if (facingLeft) {
+                    effectPos.setX(effectPos.x() - 40);
+                } else {
+                    effectPos.setX(effectPos.x() + 40);
+                }
+                effectPos.setY(effectPos.y() - 80); 
+                effectDuration = 250; 
+                break;
+            }
+            default:
+                break;
+        }
+    } else {
+        // 拳头攻击效果位置 - 无论朝向如何都使用一致的X偏移，因为我们会通过翻转来处理朝向
+        if (facingLeft) {
+            effectPos.setX(effectPos.x() - 20);
+        } else {
+            effectPos.setX(effectPos.x() + 20);
+        }
+        effectPos.setY(effectPos.y() - 80);  // 调整高度到合适位置
+        
+        // 为拳头攻击设置适当的持续时间
+        effectDuration = 300;  // 拳头攻击图片显示时间
+    }
+    
+    attackEffectItem->setPos(effectPos);
+    attackEffectItem->setVisible(true);
+    
+    // 根据角色朝向设置攻击图片的翻转
+    if (facingLeft) {  // 朝左时翻转攻击效果
+        if (!weapon || weapon->getWeaponType() == WeaponType::Knife) {
+            attackEffectItem->setTransform(QTransform().scale(-1, 1));
+        }
+    } else {
+        if (!weapon || weapon->getWeaponType() == WeaponType::Knife) {
+            attackEffectItem->setTransform(QTransform().scale(1, 1));
+        }
+    }
+    
+    attackAnimationTimer->start(effectDuration);
+}
+
+void Character::hideAttackEffect() {
+    if (attackEffectItem) {
+        attackEffectItem->setVisible(false);
+        // 移除并删除攻击效果图像，以便下次攻击时创建新的
+        if (attackEffectItem->scene()) {
+            attackEffectItem->scene()->removeItem(attackEffectItem);
+        }
+        delete attackEffectItem;
+        attackEffectItem = nullptr;
+    }
+    isAttackAnimationActive = false;
+}
+
+void Character::showDamageEffect() {
+    if (isDamageAnimationActive) return;
+    
+    isDamageAnimationActive = true;
+    damageFlashCount = 0;
+    
+    if (pixmapItem) {
+        QPixmap redPixmap = originalPixmap;
+        QPainter painter(&redPixmap);
+        painter.setCompositionMode(QPainter::CompositionMode_Overlay);
+        painter.fillRect(redPixmap.rect(), QColor(255, 0, 0, 128));
+        painter.end();
+        
+        pixmapItem->setPixmap(redPixmap);
+    }
+    
+    damageAnimationTimer->start(100);
+}
+
+void Character::hideDamageEffect() {
+    damageFlashCount++;
+    
+    if (damageFlashCount >= 4) {
+        if (pixmapItem) {
+            pixmapItem->setPixmap(originalPixmap);
+        }
+        isDamageAnimationActive = false;
+        return;
+    }
+    
+    if (damageFlashCount % 2 == 0) {
+        if (pixmapItem) {
+            QPixmap redPixmap = originalPixmap;
+            QPainter painter(&redPixmap);
+            painter.setCompositionMode(QPainter::CompositionMode_Overlay);
+            painter.fillRect(redPixmap.rect(), QColor(255, 0, 0, 128));
+            painter.end();
+            pixmapItem->setPixmap(redPixmap);
+        }
+    } else {
+        if (pixmapItem) {
+            pixmapItem->setPixmap(originalPixmap);
+        }
+    }
+    damageAnimationTimer->start(100);
 }

@@ -12,7 +12,7 @@ Adrenaline::Adrenaline(QGraphicsItem* parent)
     // 设置适当的大小
     if (pixmapItem) {
         QPixmap original = pixmapItem->pixmap();
-        QPixmap scaled = original.scaled(30, 30, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPixmap scaled = original.scaled(40, 20, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         pixmapItem->setPixmap(scaled);
         pixmapItem->setOffset(-scaled.width() / 2, -scaled.height() / 2);
     }
