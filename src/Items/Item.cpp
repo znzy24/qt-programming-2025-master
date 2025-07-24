@@ -1,4 +1,5 @@
 #include "Item.h"
+#include <QGraphicsEffect>
 
 Item::Item(QGraphicsItem *parent, const QString &pixmapPath) : QGraphicsItem(parent) {
     if (pixmapPath != "") {
@@ -15,4 +16,10 @@ Item::Item(QGraphicsItem *parent, const QString &pixmapPath) : QGraphicsItem(par
 
 void Item::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget){
     return;
+}
+
+void Item::setGraphicsEffect(QGraphicsEffect* effect) {
+    if (pixmapItem) {
+        pixmapItem->setGraphicsEffect(effect);
+    }
 }

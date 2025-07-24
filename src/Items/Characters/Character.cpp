@@ -118,13 +118,16 @@ void Character::setStandPose() {
 void Character::processInput() {
     crouching = isPickDown();
     auto velocity = this->velocity;
-    const auto moveSpeed = 1.0;
+    const auto baseSpeed = 1.0;
     const auto jumpSpeed = -1.5;
 
     PlatformType platformType = PlatformType::Soil;
     qreal dummyY;
     isStandingOnPlatform(&dummyY, &platformType);
 
+    // 应用移动速度乘数（正常速度 * 平台速度修正 * 装备速度加成）
+    qreal moveSpeed = baseSpeed * speedMultiplier;
+    
     qreal actualMoveSpeed = moveSpeed;
     if (platformType == PlatformType::Ice) {
         actualMoveSpeed = moveSpeed * 2.0;
@@ -300,4 +303,12 @@ void Character::consumeWeaponPoint(int point) {
         }
     }
     return;
+}
+
+qreal Character::getSpeedMultiplier() const {
+    return speedMultiplier;
+}
+
+void Character::setSpeedMultiplier(qreal multiplier) {
+    speedMultiplier = multiplier;
 }

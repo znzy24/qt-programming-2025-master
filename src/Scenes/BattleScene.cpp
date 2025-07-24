@@ -8,6 +8,9 @@
 #include "../Items/Weapons/Sniper.h"
 #include "../Items/FallingItem.h"
 #include "../Items/Weapons/Knife.h"
+#include "../Items/Equipments/Bandage.h"
+#include "../Items/Equipments/MedKit.h"
+#include "../Items/Equipments/Adrenaline.h"
 
 BattleScene::BattleScene(QObject *parent) : Scene(parent) {
     setSceneRect(0, 0, 1280, 720);
@@ -28,7 +31,7 @@ BattleScene::BattleScene(QObject *parent) : Scene(parent) {
     gameOverFont.setBold(true);
     gameOverText->setFont(gameOverFont);
     gameOverText->setZValue(1001); // 确保显示在最上层
-    gameOverText->setPos(sceneRect().width() / 2 - 150, sceneRect().height() / 2 - 50); // 居中显示
+    gameOverText->setPos(sceneRect().width() / 2 - 200, sceneRect().height() / 2 - 50); // 居中显示
     gameOverText->setVisible(false);
     addItem(gameOverText);
     
@@ -120,11 +123,11 @@ void BattleScene::keyPressEvent(QKeyEvent *event) {
             if (character2 != nullptr) character2->setLeftDown(true); break;
         case Qt::Key_Right:
             if (character2 != nullptr) character2->setRightDown(true); break;
-        case Qt::Key_1:
+        case Qt::Key_Down:
             if (character2 != nullptr) character2->setPickDown(true); break;
         case Qt::Key_Up:
             if (character2 != nullptr) character2->setJumpDown(true); break;
-        case Qt::Key_0:
+        case Qt::Key_L:
             if (character2 != nullptr) character2->setAttackDown(true); break;
         default:
             Scene::keyPressEvent(event);
@@ -148,11 +151,11 @@ void BattleScene::keyReleaseEvent(QKeyEvent *event) {
             if (character2 != nullptr) character2->setLeftDown(false); break;
         case Qt::Key_Right:
             if (character2 != nullptr) character2->setRightDown(false); break;
-        case Qt::Key_1:
+        case Qt::Key_Down:
             if (character2 != nullptr) character2->setPickDown(false); break;
         case Qt::Key_Up:
             if (character2 != nullptr) character2->setJumpDown(false); break;
-        case Qt::Key_0:
+        case Qt::Key_L:
             if (character2 != nullptr) character2->setAttackDown(false); break;
         default:
             Scene::keyReleaseEvent(event);
@@ -216,10 +219,19 @@ void BattleScene::processPicking() {
         return;
     }
     
+    // 处理玩家1的拾取操作
     if (character->isPicking()) {
         auto mountable = findNearestUnmountedMountable(character->pos(), 100);
         if (mountable != nullptr) {
            pickupMountable(character, mountable);
+        }
+    }
+    
+    // 处理玩家2的拾取操作
+    if (character2->isPicking()) {
+        auto mountable = findNearestUnmountedMountable(character2->pos(), 100);
+        if (mountable != nullptr) {
+           pickupMountable(character2, mountable);
         }
     }
     return;
@@ -245,10 +257,24 @@ Mountable *BattleScene::findNearestUnmountedMountable(const QPointF &pos, qreal 
 }
 
 void BattleScene::pickupMountable(Character *character, Mountable *mountable) {
+    // 获取物品的图形效果，如果有淡出效果，则取消它
+    Item* item = dynamic_cast<Item*>(mountable);
+    if (item) {
+        // 移除任何可能的淡出效果
+        item->setGraphicsEffect(nullptr);
+    }
+    
+    // 处理武器拾取
     if (auto weapon = dynamic_cast<Weapon *>(mountable)) {
         character->pickupWeapon(weapon);
+        return;
     }
-    return;
+    
+    // 处理装备使用
+    if (auto equipment = dynamic_cast<Equipment *>(mountable)) {
+        equipment->useBy(character);
+        return;
+    }
 }
 
 // 实现随机物品掉落功能
@@ -259,11 +285,12 @@ void BattleScene::spawnRandomItem() {
         return;
     }
     
-    // 随机选择一种武器类型
-    int weaponType = QRandomGenerator::global()->bounded(4); // 0-3之间的随机数
+    // 随机选择一种物品类型
+    int itemType = QRandomGenerator::global()->bounded(7); // 0-6之间的随机数
     Item* newItem = nullptr;
     
-    switch (weaponType) {
+    switch (itemType) {
+        // 武器类
         case 0:
             newItem = new Knife();
             break;
@@ -275,6 +302,17 @@ void BattleScene::spawnRandomItem() {
             break;
         case 3:
             newItem = new Sniper();
+            break;
+        
+        // 装备类
+        case 4:
+            newItem = new Bandage();
+            break;
+        case 5:
+            newItem = new MedKit();
+            break;
+        case 6:
+            newItem = new Adrenaline();
             break;
     }
     
@@ -306,7 +344,7 @@ bool BattleScene::checkGameOver() {
         // 右侧角色(character2)胜利
         winner = 2;
         gameOver = true;
-        gameOverText->setPlainText("右方玩家胜利！");
+        gameOverText->setPlainText("玩家2胜利！\n按R键重新开始");
         gameOverText->setVisible(true);
         return true;
     }
@@ -316,7 +354,7 @@ bool BattleScene::checkGameOver() {
         // 左侧角色(character)胜利
         winner = 1;
         gameOver = true;
-        gameOverText->setPlainText("左方玩家胜利！");
+        gameOverText->setPlainText("玩家1胜利！\n按R键重新开始");
         gameOverText->setVisible(true);
         return true;
     }

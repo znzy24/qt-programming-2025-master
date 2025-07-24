@@ -12,5 +12,8 @@
         <file>Items/Weapons/Bullet.png</file>
         <file>Items/Weapons/Sniper.png</file>
         <file>Items/Weapons/SniperBullet.png</file>
+        <file>Items/Equipments/Bandage.png</file>
+        <file>Items/Equipments/MedKit.png</file>
+        <file>Items/Equipments/Adrenaline.png</file>
     </qresource>
 </RCC>

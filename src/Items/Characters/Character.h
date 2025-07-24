@@ -50,6 +50,10 @@ public:
     void takeDamage(int damage);
     void consumeWeaponPoint(int point);
     void updateWeaponPosition();
+    
+    // 获取和设置速度乘数（用于肾上腺素等装备的速度加成效果）
+    qreal getSpeedMultiplier() const;
+    void setSpeedMultiplier(qreal multiplier);
 protected:
     Weapon *weapon{};
     QPointF velocity{};
@@ -70,6 +74,7 @@ protected:
     bool facingLeft{false};
     int currentWeaponPoints = 1;
     int maxWeaponPoints = 1;
+    qreal speedMultiplier = 1.0; // 速度乘数，默认为1.0，可被装备提升
 };
 
 

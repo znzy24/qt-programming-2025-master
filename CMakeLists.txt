@@ -51,7 +51,14 @@ add_executable(qt_programming_2024 src/main.cpp
         src/Items/Weapons/Sniper.cpp
         src/Items/FallingItem.h
         src/Items/FallingItem.cpp
-        src/Items/Weapons/Sniper.cpp
+        src/Items/Equipments/Equipment.h
+        src/Items/Equipments/Equipment.cpp
+        src/Items/Equipments/Bandage.h
+        src/Items/Equipments/Bandage.cpp
+        src/Items/Equipments/MedKit.h
+        src/Items/Equipments/MedKit.cpp
+        src/Items/Equipments/Adrenaline.h
+        src/Items/Equipments/Adrenaline.cpp
 )
 target_link_libraries(qt_programming_2024
         Qt::Core
