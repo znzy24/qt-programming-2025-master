@@ -14,7 +14,7 @@ enum PoseState { Stand, Crouch };
 
 class Character : public Item {
 public:
-    explicit Character(QGraphicsItem *parent);
+    explicit Character(QGraphicsItem *parent, bool useAlternateSprite = false);
     virtual ~Character();
 
     [[nodiscard]] bool isLeftDown() const;
@@ -83,6 +83,7 @@ protected:
     int currentWeaponPoints = 1;
     int maxWeaponPoints = 1;
     qreal speedMultiplier = 1.0;
+    bool useAlternateSprite = false;
     
     QTimer* attackAnimationTimer{nullptr};
     QGraphicsPixmapItem* attackEffectItem{nullptr};

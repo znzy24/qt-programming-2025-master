@@ -18,7 +18,7 @@ BattleScene::BattleScene(QObject *parent) : Scene(parent) {
     setSceneRect(0, 0, 1280, 720);
     map = new Battlefield();
     character = new Character(nullptr);
-    character2 = new Character(nullptr);
+    character2 = new Character(nullptr, true);  // 使用替代精灵图
     addItem(map);
     addItem(character);
     addItem(character2);

@@ -6,7 +6,9 @@
 #include "Character.h"
 
 
-Character::Character(QGraphicsItem *parent) : Item(parent, ":/Items/Characters/CharacterStand.png") {
+Character::Character(QGraphicsItem *parent, bool useAlternateSprite) : 
+    Item(parent, useAlternateSprite ? ":/Items/Characters/CharacterStand2.png" : ":/Items/Characters/CharacterStand.png"),
+    useAlternateSprite(useAlternateSprite) {
     if (pixmapItem) {
         QPixmap original = pixmapItem->pixmap();
         QPixmap scaled = original.scaled(80, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -135,7 +137,8 @@ void Character::setVelocity(const QPointF &velocity) {
 void Character::setCrouchPose() {
     if (poseState == Crouch) return;
     if (pixmapItem) {
-        QPixmap crouchPixmap(":/Items/Characters/CharacterCrouch.png");
+        QString crouchPath = useAlternateSprite ? ":/Items/Characters/CharacterCrouch2.png" : ":/Items/Characters/CharacterCrouch.png";
+        QPixmap crouchPixmap(crouchPath);
         QPixmap scaled = crouchPixmap.scaled(80
             , 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         pixmapItem->setPixmap(scaled);
@@ -149,7 +152,8 @@ void Character::setCrouchPose() {
 void Character::setStandPose() {
     if (poseState == Stand) return;
     if (pixmapItem) {
-        QPixmap standPixmap(":/Items/Characters/CharacterStand.png");
+        QString standPath = useAlternateSprite ? ":/Items/Characters/CharacterStand2.png" : ":/Items/Characters/CharacterStand.png";
+        QPixmap standPixmap(standPath);
         QPixmap scaled = standPixmap.scaled(80, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         pixmapItem->setPixmap(scaled);
         pixmapItem->setOffset(-scaled.width() / 2, -scaled.height());
