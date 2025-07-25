@@ -13,7 +13,6 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     
-    // 为派生类提供设置图形效果的方法
     void setGraphicsEffect(QGraphicsEffect* effect);
 
 protected:

@@ -17,9 +17,8 @@ Character::Character(QGraphicsItem *parent) : Item(parent, ":/Items/Characters/C
     }
     setZValue(10);
     
-    // 初始化朝向设置（默认朝右）
-    facingLeft = false;  // 默认朝右
-    setTransform(QTransform().scale(-1, 1));  // 设置图像朝右的变换
+    facingLeft = false; 
+    setTransform(QTransform().scale(-1, 1)); 
     
     attackAnimationTimer = new QTimer();
     attackAnimationTimer->setSingleShot(true);
@@ -267,33 +266,30 @@ void Character::attack() {
     static qint64 lastAttackTime = 0;
     qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
     
-    // 根据武器类型设置不同的冷却时间
-    int cooldownTime = 500; // 默认冷却时间（毫秒）
+    int cooldownTime = 500;
     
     if (weapon) {
-        // 根据武器类型设置不同的冷却时间
         switch (weapon->getWeaponType()) {
             case WeaponType::Knife:
-                cooldownTime = 400; // 小刀攻击冷却时间较短
+                cooldownTime = 400; 
                 break;
             case WeaponType::SolidBall:
-                cooldownTime = 800; // 投掷物冷却时间较长
+                cooldownTime = 800; 
                 break;
             case WeaponType::Rifle:
-                cooldownTime = 350; // 步枪冷却时间
+                cooldownTime = 350; 
                 break;
             case WeaponType::Sniper:
-                cooldownTime = 1200; // 狙击枪冷却时间最长
+                cooldownTime = 1200; 
                 break;
             default:
-                cooldownTime = 500; // 默认冷却时间
+                cooldownTime = 500;
                 break;
         }
     } else {
-        cooldownTime = 450; // 拳头攻击的冷却时间
+        cooldownTime = 450; 
     }
     
-    // 检查是否已经冷却完毕
     if (currentTime - lastAttackTime < cooldownTime) {
         return;
     }
@@ -333,9 +329,8 @@ void Character::takeDamage(int damage) {
 void Character::updateWeaponPosition() {
     if (weapon == nullptr) return;
     
-    QPointF weaponOffset(-25, -30);  // 默认偏移量
+    QPointF weaponOffset(-25, -30); 
     
-    // 根据武器类型调整位置
     switch (weapon->getWeaponType()) {
         case WeaponType::Fist:
             weaponOffset = QPointF(-20, -20);
@@ -356,7 +351,6 @@ void Character::updateWeaponPosition() {
             break;
     }
     
-    // 如果角色是下蹲状态，调整武器位置更靠下一些
     if (poseState == Crouch) {
         weaponOffset.setY(weaponOffset.y() + 5);
     }
@@ -426,19 +420,16 @@ void Character::showAttackEffect() {
                     break;
                 }
                 case WeaponType::SolidBall: {
-                    // 投掷类武器不需要额外的攻击动画，因为有飞行物动画
-                    effectPixmap = QPixmap(1, 1);  // 创建一个几乎不可见的空图像
+                    effectPixmap = QPixmap(1, 1); 
                     effectPixmap.fill(Qt::transparent);
                     break;
                 }
                 case WeaponType::Rifle: {
-                    // 射击类武器不需要额外的攻击动画，因为有子弹飞行动画
                     effectPixmap = QPixmap(1, 1);
                     effectPixmap.fill(Qt::transparent);
                     break;
                 }
                 case WeaponType::Sniper: {
-                    // 射击类武器不需要额外的攻击动画，因为有子弹飞行动画
                     effectPixmap = QPixmap(1, 1);
                     effectPixmap.fill(Qt::transparent);
                     break;
@@ -471,9 +462,8 @@ void Character::showAttackEffect() {
             case WeaponType::Rifle:
             case WeaponType::Sniper:
             case WeaponType::SolidBall: {
-                // 投掷类和射击类武器不需要显示攻击效果
                 attackEffectItem->setVisible(false);
-                effectDuration = 10;  // 极短的持续时间，因为不需要显示效果
+                effectDuration = 10;
                 break;
             }
             case WeaponType::Knife: {
@@ -490,23 +480,20 @@ void Character::showAttackEffect() {
                 break;
         }
     } else {
-        // 拳头攻击效果位置 - 无论朝向如何都使用一致的X偏移，因为我们会通过翻转来处理朝向
         if (facingLeft) {
             effectPos.setX(effectPos.x() - 20);
         } else {
             effectPos.setX(effectPos.x() + 20);
         }
-        effectPos.setY(effectPos.y() - 80);  // 调整高度到合适位置
-        
-        // 为拳头攻击设置适当的持续时间
-        effectDuration = 300;  // 拳头攻击图片显示时间
+        effectPos.setY(effectPos.y() - 80); 
+
+        effectDuration = 300; 
     }
     
     attackEffectItem->setPos(effectPos);
     attackEffectItem->setVisible(true);
     
-    // 根据角色朝向设置攻击图片的翻转
-    if (facingLeft) {  // 朝左时翻转攻击效果
+    if (facingLeft) { 
         if (!weapon || weapon->getWeaponType() == WeaponType::Knife) {
             attackEffectItem->setTransform(QTransform().scale(-1, 1));
         }
@@ -522,7 +509,6 @@ void Character::showAttackEffect() {
 void Character::hideAttackEffect() {
     if (attackEffectItem) {
         attackEffectItem->setVisible(false);
-        // 移除并删除攻击效果图像，以便下次攻击时创建新的
         if (attackEffectItem->scene()) {
             attackEffectItem->scene()->removeItem(attackEffectItem);
         }
