@@ -20,7 +20,6 @@ private:
     static const int EFFECT_DURATION = 10000;
     static const int HEAL_INTERVAL = 1000;
     static const int HEAL_AMOUNT = 2;
-    static const qreal SPEED_BOOST_FACTOR = 1.5;
 
     Character* affectedCharacter = nullptr;
     QTimer* effectTimer = nullptr;
